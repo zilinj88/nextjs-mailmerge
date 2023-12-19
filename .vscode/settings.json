@@ -1,0 +1,79 @@
+{
+  "[javascript]": {
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true,
+    "editor.codeActionsOnSave": {
+      "source.removeUnusedImports": true
+    }
+  },
+  "[typescript]": {
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true,
+    "editor.codeActionsOnSave": {
+      "source.removeUnusedImports": true
+    }
+  },
+  "[typescriptreact]": {
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true,
+    "editor.codeActionsOnSave": {
+      "source.removeUnusedImports": true
+    }
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "files.trimTrailingWhitespace": true,
+  "[markdown]": {
+    "files.trimTrailingWhitespace": false
+  },
+  "emmet.includeLanguages": {
+    "vue-html": "html",
+    "javascript": "javascriptreact"
+  },
+  "files.exclude": {
+    "**/node_modules": true,
+    ".next/**": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    ".next/**": true
+  },
+  "editor.tabSize": 2,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.addMissingImports": "explicit"
+  },
+  "javascript.suggest.autoImports": true,
+  "typescript.suggest.autoImports": true,
+  "javascript.updateImportsOnFileMove.enabled": "always",
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "html.autoClosingTags": true,
+  "javascript.autoClosingTags": true,
+  "typescript.autoClosingTags": true,
+  "javascript.format.semicolons": "ignore",
+  "typescript.format.semicolons": "ignore",
+  "typescript.preferences.importModuleSpecifier": "non-relative",
+  // VSCode uses local version of ts
+  // See https://code.visualstudio.com/docs/typescript/typescript-compiling#_using-newer-typescript-versions
+  "typescript.tsdk": "node_modules/typescript/lib",
+  // Allow comments in JSON
+  // See https://www.techiediaries.com/enable-json-comments-vs-code
+  "files.associations": {
+    "*.json": "jsonc"
+  },
+  "terminal.integrated.profiles.linux": {
+    "bash": {
+      "path": "bash",
+      "args": ["-i"]
+    }
+  },
+
+  // extension configs
+  "rewrap.autoWrap.enabled": true,
+  "[javascript][typescript][typescriptreact]": {
+    "editor.codeActionsOnSave": {
+      "source.removeUnusedImports": "explicit"
+    }
+  },
+}

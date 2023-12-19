@@ -1,0 +1,53 @@
+{
+  "name": "nextjs-data-aggregate",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "clean": "rm -rf .next && rm -f tsconfig.tsbuildinfo",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint --ext ts --cache --cache-location ./.next/cache/eslint/ .",
+    "lint:write": "npm run lint -- --fix",
+    "jest": "jest --bail",
+    "cspell": "cspell lint \"**/*.{ts,js}\" --no-progress",
+    "jest:dev": "cross-env NODE_ENV=development jest",
+    "prettier": "prettier --check \"**/*.ts\"",
+    "prettier:write": "prettier --write \"**/*.ts\""
+  },
+  "dependencies": {
+    "next": "14.0.4",
+    "react": "^18",
+    "react-dom": "^18",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@total-typescript/ts-reset": "^0.5.1",
+    "@trivago/prettier-plugin-sort-imports": "^4.3.0",
+    "@types/mixpanel-browser": "^2.47.5",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "@typescript-eslint/eslint-plugin": "^6.13.2",
+    "@typescript-eslint/parser": "^6.13.2",
+    "cross-env": "^7.0.3",
+    "cspell": "^8.1.3",
+    "dotenv-flow": "^4.0.1",
+    "eslint": "^8",
+    "eslint-config-next": "14.0.3",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-deprecation": "^2.0.0",
+    "eslint-plugin-filename-rules": "^1.3.1",
+    "eslint-plugin-import": "^2.29.0",
+    "eslint-plugin-jest": "^27.6.0",
+    "eslint-plugin-prefer-arrow": "^1.2.3",
+    "eslint-plugin-security": "^1.7.1",
+    "jest": "^29.7.0",
+    "jest-environment-node": "^29.7.0",
+    "jest-extended": "^4.0.2",
+    "prettier": "^3.1.0",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5"
+  }
+}
