@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
-import type { JSX } from 'react'
+import { type JSX } from 'react'
+import { GoogleApi } from '~/components/google-api'
 
 export const metadata: Metadata = {
   title: 'Create Next App',
@@ -10,6 +11,7 @@ const RootLayout = ({ children }: { children: React.ReactNode }): JSX.Element =>
   return (
     <html lang='en'>
       <body>{children}</body>
+      <GoogleApi />
     </html>
   )
 }
