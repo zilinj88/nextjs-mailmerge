@@ -6,6 +6,10 @@
     "*.json"
   ],
   "words": [
-    "zenv"
+    "gapi",
+    "mantine",
+    "papaparse",
+    "zenv",
+    "zustand"
   ]
 }

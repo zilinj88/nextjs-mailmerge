@@ -5,7 +5,7 @@ import { useGoogleService } from '~/lib/hooks'
 import { zenv } from '~/lib/zenv'
 
 const gapiLoaded = () => {
-  if (useGoogleService.getState().gapInited) {
+  if (useGoogleService.getState().gapInitialized) {
     return
   }
   gapi.load('client', async () => {
@@ -13,12 +13,12 @@ const gapiLoaded = () => {
       apiKey: zenv.NEXT_PUBLIC_API_KEY,
       discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/gmail/v1/rest'],
     })
-    useGoogleService.setState({ gapInited: true })
+    useGoogleService.setState({ gapInitialized: true })
   })
 }
 
 const gisLoaded = () => {
-  if (useGoogleService.getState().gisInited) {
+  if (useGoogleService.getState().gisInitialized) {
     return
   }
   const tokenClient = google.accounts.oauth2.initTokenClient({
@@ -28,7 +28,7 @@ const gisLoaded = () => {
       useGoogleService.setState({ tokenResponse })
     },
   })
-  useGoogleService.setState({ gisInited: true, tokenClient })
+  useGoogleService.setState({ gisInitialized: true, tokenClient })
 }
 
 export const GoogleApi: React.FC = () => {
