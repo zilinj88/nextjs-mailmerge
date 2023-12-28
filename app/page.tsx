@@ -1,15 +1,20 @@
 'use client'
 
-import { Container, Stack, Tabs, Title } from '@mantine/core'
+import { Button, Container, Group, Stack, Tabs, Title } from '@mantine/core'
 import { type JSX } from 'react'
 import { TemplateEditor } from '~/components/template-editor'
 import { UsersTable } from '~/components/users-table'
+import { useGoogleService } from '~/lib/hooks'
 
 const Home = (): JSX.Element => {
+  const accessToken = useGoogleService((state) => state.token)
   return (
     <Container size='xl' mt='lg'>
       <Stack gap='md'>
-        <Title order={1}>Mail Merge</Title>
+        <Group justify='space-between'>
+          <Title order={1}>Mail Merge</Title>
+          {!!accessToken && <Button>Sign out</Button>}
+        </Group>
         <Tabs defaultValue='users'>
           <Tabs.List>
             <Tabs.Tab value='users'>Users</Tabs.Tab>

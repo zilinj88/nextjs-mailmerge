@@ -1,21 +1,26 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
+interface GoogleServiceToken extends google.accounts.oauth2.TokenResponse {
+  expiresAt: number
+}
+
 export interface UseGoogleServiceStore {
-  gapInitialized: boolean
+  gapiInitialized: boolean
   gisInitialized: boolean
-  tokenClient?: google.accounts.oauth2.TokenClient
-  tokenResponse?: google.accounts.oauth2.TokenResponse
+  token?: GoogleServiceToken
 }
 
 export const useGoogleService = create<UseGoogleServiceStore>(() => ({
-  gapInitialized: false,
+  gapiInitialized: false,
   gisInitialized: false,
-  tokenClient: undefined,
-  tokenResponse: undefined,
+  token: undefined,
 }))
 
-export interface UserRow extends Record<string, string> {}
+export interface UserRow extends Record<string, string> {
+  email: string
+}
+
 export interface UsersData {
   columns: string[]
   rows: UserRow[]

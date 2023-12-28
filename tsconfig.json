@@ -23,7 +23,8 @@
       "@total-typescript/ts-reset",
       "jest",
       "gapi",
-      "google.accounts"
+      "google.accounts",
+      "gapi.client.gmail-v1",
     ],
     "noUncheckedIndexedAccess": true,
     // required for openapi-typescript-codegen to work

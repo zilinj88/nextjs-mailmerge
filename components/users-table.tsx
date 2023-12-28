@@ -4,17 +4,29 @@ import { Button, Checkbox, FileInput, Menu, Stack, Table, ThemeIcon } from '@man
 import { IconEye, IconSend, IconSend2 } from '@tabler/icons-react'
 import papaparse from 'papaparse'
 import { PreviewModal } from '~/components/preview-modal'
+import { sendEmails } from '~/lib/email'
 import { type UserRow, type UsersData, useAppDataStore, usePreviewModalStore } from '~/lib/hooks'
 import { theme } from '~/lib/theme'
+import { requestGoogleAccessToken } from '~/lib/token'
 import { atOrThrow } from '~/lib/util'
 
 const parseFile = async (file: File) =>
-  new Promise<UsersData>((resolve) => {
-    papaparse.parse<UserRow>(file, {
+  new Promise<UsersData>((resolve, reject) => {
+    papaparse.parse<Record<string, string>>(file, {
       header: true,
       complete: (results) => {
         const { meta, data } = results
-        resolve({ columns: meta.fields ?? [], rows: data })
+        const columns = meta.fields
+        if (!columns || !columns.length) {
+          reject(new Error('Invalid headers provided'))
+          return
+        }
+        resolve({
+          columns,
+          // Assume the first column is always the e-mail regardless of the
+          // header name
+          rows: data.map<UserRow>((v) => ({ ...v, email: v[atOrThrow(columns, 0)] ?? '' })),
+        })
       },
     })
   })
@@ -100,10 +112,20 @@ const UserRowComp: React.FC<UserRowCompProps> = ({ index }) => {
   const row = atOrThrow(data.rows, index)
 
   const onPreview = () => {
-    openPreviewModal(atOrThrow(data.rows, index))
+    openPreviewModal(row)
   }
-  const onSend = () => {}
-  const onSendMe = () => {}
+  const onSend = async () => {
+    await requestGoogleAccessToken()
+    sendEmails([{ user: row, to: row.email }])
+  }
+  const onSendMe = async () => {
+    await requestGoogleAccessToken()
+    const { result } = await gapi.client.gmail.users.getProfile({ userId: 'me' })
+    if (!result || !result.emailAddress) {
+      return
+    }
+    sendEmails([{ user: row, to: result.emailAddress }])
+  }
 
   return (
     <Table.Tr key={index} bg={isSelected ? theme.colors.blue[0] : undefined}>
@@ -126,6 +148,19 @@ const UserRowComp: React.FC<UserRowCompProps> = ({ index }) => {
   )
 }
 
+const onClickSendBatch = async () => {
+  const { data, selectedIndexes } = useAppDataStore.getState()
+  if (!data || selectedIndexes.length === 0) {
+    return
+  }
+  const params = selectedIndexes.map((i) => {
+    const user = atOrThrow(data.rows, i)
+    return { user, to: user.email }
+  })
+  await requestGoogleAccessToken()
+  await sendEmails(params)
+}
+
 export const UsersTable: React.FC = () => {
   const data = useAppDataStore((state) => state.data)
   const allSelected = useAppDataStore((state) => state.selectedIndexes.length === data?.rows.length)
@@ -138,7 +173,11 @@ export const UsersTable: React.FC = () => {
 
       {!!data && data.rows.length > 0 && (
         <>
-          <Button style={{ alignSelf: 'flex-start' }} disabled={selectedRowsCount === 0}>
+          <Button
+            style={{ alignSelf: 'flex-start' }}
+            disabled={selectedRowsCount === 0}
+            onClick={() => onClickSendBatch()}
+          >
             {selectedRowsCount > 0 ? `Send ${selectedRowsCount} email(s)` : 'No rows selected'}
           </Button>
           <Table striped>

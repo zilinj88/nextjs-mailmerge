@@ -1,5 +1,7 @@
 import { ColorSchemeScript, MantineProvider } from '@mantine/core'
 import '@mantine/core/styles.css'
+import { Notifications } from '@mantine/notifications'
+import '@mantine/notifications/styles.css'
 import type { Metadata } from 'next'
 import { type JSX } from 'react'
 import { GoogleApi } from '~/components/google-api'
@@ -17,7 +19,10 @@ const RootLayout = ({ children }: { children: React.ReactNode }): JSX.Element =>
         <ColorSchemeScript defaultColorScheme='light' />
       </head>
       <body>
-        <MantineProvider theme={theme}>{children}</MantineProvider>
+        <MantineProvider theme={theme}>
+          <Notifications />
+          {children}
+        </MantineProvider>
       </body>
       <GoogleApi />
     </html>

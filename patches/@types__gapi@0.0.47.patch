@@ -1,0 +1,13 @@
+diff --git a/index.d.ts b/index.d.ts
+index 4110d6cf043b8f6a10090047f17f334e09362920..ac241f0a27baf663b8ee2b5bea35882f0817e4e9 100644
+--- a/index.d.ts
++++ b/index.d.ts
+@@ -244,7 +244,7 @@ declare namespace gapi.client {
+      * Retrieves the OAuth 2.0 token for the application.
+      * @return The OAuth 2.0 token.
+      */
+-    export function getToken(): GoogleApiOAuth2TokenObject;
++    export function getToken(): GoogleApiOAuth2TokenObject | null;
+     /**
+      * Sets the authentication token to use in requests.
+      * @param token The token to set.

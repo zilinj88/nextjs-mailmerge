@@ -19,11 +19,13 @@
   "dependencies": {
     "@mantine/core": "^7.3.2",
     "@mantine/hooks": "^7.3.2",
+    "@mantine/notifications": "^7.3.2",
     "@tabler/icons-react": "^2.44.0",
     "@uiw/react-md-editor": "^4.0.1",
     "next": "14.0.4",
     "react": "^18",
     "react-dom": "^18",
+    "showdown": "^2.1.0",
     "zod": "^3.22.4",
     "zustand": "^4.4.7"
   },
@@ -31,11 +33,13 @@
     "@total-typescript/ts-reset": "^0.5.1",
     "@trivago/prettier-plugin-sort-imports": "^4.3.0",
     "@types/gapi": "^0.0.47",
+    "@types/gapi.client.gmail-v1": "^0.0.4",
     "@types/google.accounts": "^0.0.14",
     "@types/node": "^20",
     "@types/papaparse": "^5.3.14",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/showdown": "^2.0.6",
     "@typescript-eslint/eslint-plugin": "^6.13.2",
     "@typescript-eslint/parser": "^6.13.2",
     "cross-env": "^7.0.3",
@@ -60,5 +64,10 @@
     "prettier": "^3.1.0",
     "ts-jest": "^29.1.1",
     "typescript": "^5"
+  },
+  "pnpm": {
+    "patchedDependencies": {
+      "@types/gapi@0.0.47": "patches/@types__gapi@0.0.47.patch"
+    }
   }
 }
