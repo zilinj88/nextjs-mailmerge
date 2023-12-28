@@ -9,6 +9,7 @@
     "gapi",
     "mantine",
     "papaparse",
+    "partialize",
     "zenv",
     "zustand"
   ]

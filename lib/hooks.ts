@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 
 export interface UseGoogleServiceStore {
   gapInitialized: boolean
@@ -30,28 +31,39 @@ export interface UseAppDataStore {
   setAllSelected: (allSelected: boolean) => void
 }
 
-export const useAppDataStore = create<UseAppDataStore>((set, get) => ({
-  data: undefined,
-  selectedIndexes: [],
-  subjectTemplate: '',
-  mdTemplate: '',
-  setData: (data) => {
-    // clear selection
-    set({ selectedIndexes: [], data })
-  },
-  toggleSelected: (index) => {
-    const selectedIndexes = get().selectedIndexes
-    const position = selectedIndexes.indexOf(index)
-    if (position === -1) {
-      set({ selectedIndexes: [...selectedIndexes, index] })
-    } else {
-      set({ selectedIndexes: selectedIndexes.toSpliced(position, 1) })
+export const useAppDataStore = create<UseAppDataStore>()(
+  persist(
+    (set, get) => ({
+      data: undefined,
+      selectedIndexes: [],
+      subjectTemplate: '',
+      mdTemplate: '',
+      setData: (data) => {
+        // clear selection
+        set({ selectedIndexes: [], data })
+      },
+      toggleSelected: (index) => {
+        const selectedIndexes = get().selectedIndexes
+        const position = selectedIndexes.indexOf(index)
+        if (position === -1) {
+          set({ selectedIndexes: [...selectedIndexes, index] })
+        } else {
+          set({ selectedIndexes: selectedIndexes.toSpliced(position, 1) })
+        }
+      },
+      setAllSelected: (allSelected) => {
+        set({ selectedIndexes: allSelected ? get().data?.rows.map((_, index) => index) ?? [] : [] })
+      },
+    }),
+    {
+      name: 'app-data-storage',
+      partialize: (state) => ({
+        subjectTemplate: state.subjectTemplate,
+        mdTemplate: state.mdTemplate,
+      }),
     }
-  },
-  setAllSelected: (allSelected) => {
-    set({ selectedIndexes: allSelected ? get().data?.rows.map((_, index) => index) ?? [] : [] })
-  },
-}))
+  )
+)
 
 export interface UsePreviewModalStore {
   opened: boolean
@@ -59,7 +71,7 @@ export interface UsePreviewModalStore {
   openModal: (data: UserRow) => void
   closeModal: () => void
 }
-export const usePreviewModalStore = create<UsePreviewModalStore>((set, get) => ({
+export const usePreviewModalStore = create<UsePreviewModalStore>((set) => ({
   opened: false,
   data: undefined,
   openModal: (data: UserRow) => {
