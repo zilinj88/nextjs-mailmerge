@@ -1,6 +1,8 @@
-import { Converter } from 'showdown'
+import markdownit from 'markdown-it'
 import { type UserRow, useAppDataStore } from '~/lib/hooks'
 import { renderTemplate } from '~/lib/util'
+
+const md = markdownit()
 
 interface EmailParams {
   to: string
@@ -32,13 +34,20 @@ interface SendEmailParam {
 }
 
 export const sendEmails = async (params: SendEmailParam[]): Promise<void> => {
-  const converter = new Converter()
   const { mdTemplate, subjectTemplate } = useAppDataStore.getState()
   return Promise.all(
     params.map(({ user, to }) => {
       const subject = renderTemplate(subjectTemplate, user)
-      const body = converter.makeHtml(renderTemplate(mdTemplate, user))
+      const body = md.render(renderTemplate(mdTemplate, user))
       return _sendEmail({ to, subject, body })
     })
   ).then(() => {})
+}
+
+export const getMyEmail = async (): Promise<string> => {
+  const { result } = await gapi.client.gmail.users.getProfile({ userId: 'me' })
+  if (!result.emailAddress) {
+    throw new Error('Failed to get email address')
+  }
+  return result.emailAddress
 }

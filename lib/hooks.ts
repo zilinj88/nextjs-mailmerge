@@ -9,12 +9,14 @@ export interface UseGoogleServiceStore {
   gapiInitialized: boolean
   gisInitialized: boolean
   token?: GoogleServiceToken
+  email?: string
 }
 
 export const useGoogleService = create<UseGoogleServiceStore>(() => ({
   gapiInitialized: false,
   gisInitialized: false,
   token: undefined,
+  email: undefined,
 }))
 
 export interface UserRow extends Record<string, string> {

@@ -1,19 +1,50 @@
 'use client'
 
-import { Button, Container, Group, Stack, Tabs, Title } from '@mantine/core'
-import { type JSX } from 'react'
+import { Button, Container, Group, Stack, Tabs, Text, Title } from '@mantine/core'
+import { type JSX, useEffect, useState } from 'react'
 import { TemplateEditor } from '~/components/template-editor'
 import { UsersTable } from '~/components/users-table'
+import { getMyEmail } from '~/lib/email'
 import { useGoogleService } from '~/lib/hooks'
+import { requestGoogleAccessToken, signOut } from '~/lib/token'
+
+// User Info Component
+const UserInfoComp = () => {
+  const accessToken = useGoogleService((state) => state.token)
+  const [email, setEmail] = useState('')
+  const onClickSignOut = () => {
+    signOut()
+  }
+  useEffect(() => {
+    if (accessToken) {
+      getMyEmail().then((email) => setEmail(email))
+    } else {
+      setEmail('')
+    }
+  }, [accessToken])
+
+  if (!accessToken) {
+    return <Button onClick={() => requestGoogleAccessToken()}>Sign in</Button>
+  }
+  return (
+    <Group>
+      {!!email && (
+        <Text size='sm' c='gray'>
+          Signed in as {email}
+        </Text>
+      )}
+      <Button onClick={() => onClickSignOut()}>Sign out</Button>
+    </Group>
+  )
+}
 
 const Home = (): JSX.Element => {
-  const accessToken = useGoogleService((state) => state.token)
   return (
     <Container size='xl' mt='lg'>
       <Stack gap='md'>
         <Group justify='space-between'>
           <Title order={1}>Mail Merge</Title>
-          {!!accessToken && <Button>Sign out</Button>}
+          <UserInfoComp />
         </Group>
         <Tabs defaultValue='users'>
           <Tabs.List>
