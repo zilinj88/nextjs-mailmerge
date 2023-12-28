@@ -3,7 +3,8 @@
 import { Button, Checkbox, FileInput, Menu, Stack, Table, ThemeIcon } from '@mantine/core'
 import { IconEye, IconSend, IconSend2 } from '@tabler/icons-react'
 import papaparse from 'papaparse'
-import { type UserRow, type UsersData, useAppDataStore } from '~/lib/hooks'
+import { PreviewModal } from '~/components/preview-modal'
+import { type UserRow, type UsersData, useAppDataStore, usePreviewModalStore } from '~/lib/hooks'
 import { theme } from '~/lib/theme'
 import { atOrThrow } from '~/lib/util'
 
@@ -92,12 +93,15 @@ const UserRowComp: React.FC<UserRowCompProps> = ({ index }) => {
   const data = useAppDataStore((state) => state.data)
   const toggleSelected = useAppDataStore((state) => state.toggleSelected)
   const isSelected = selectedIndexes.includes(index)
+  const openPreviewModal = usePreviewModalStore((state) => state.openModal)
   if (!data) {
     return null
   }
   const row = atOrThrow(data.rows, index)
 
-  const onPreview = () => {}
+  const onPreview = () => {
+    openPreviewModal(atOrThrow(data.rows, index))
+  }
   const onSend = () => {}
   const onSendMe = () => {}
 
@@ -161,6 +165,7 @@ export const UsersTable: React.FC = () => {
           </Table>
         </>
       )}
+      <PreviewModal />
     </Stack>
   )
 }

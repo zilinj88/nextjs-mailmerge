@@ -52,3 +52,20 @@ export const useAppDataStore = create<UseAppDataStore>((set, get) => ({
     set({ selectedIndexes: allSelected ? get().data?.rows.map((_, index) => index) ?? [] : [] })
   },
 }))
+
+export interface UsePreviewModalStore {
+  opened: boolean
+  data?: UserRow
+  openModal: (data: UserRow) => void
+  closeModal: () => void
+}
+export const usePreviewModalStore = create<UsePreviewModalStore>((set, get) => ({
+  opened: false,
+  data: undefined,
+  openModal: (data: UserRow) => {
+    set({ opened: true, data })
+  },
+  closeModal: () => {
+    set({ opened: false })
+  },
+}))

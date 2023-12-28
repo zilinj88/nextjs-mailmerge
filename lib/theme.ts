@@ -3,18 +3,31 @@
 import {
   Button,
   DEFAULT_THEME,
+  type DefaultMantineColor,
+  type MantineColorsTuple,
   Menu,
   ThemeIcon,
   createTheme,
   mergeMantineTheme,
 } from '@mantine/core'
 
+type ExtendedCustomColors = 'primary' | DefaultMantineColor
+
+declare module '@mantine/core' {
+  export interface MantineThemeColorsOverride {
+    colors: Record<ExtendedCustomColors, MantineColorsTuple>
+  }
+}
+
 export const theme = mergeMantineTheme(
   DEFAULT_THEME,
   createTheme({
+    colors: {
+      primary: DEFAULT_THEME.colors.blue,
+    },
     components: {
       Button: Button.extend({
-        defaultProps: { variant: 'outline' },
+        defaultProps: { color: 'primary', variant: 'outline' },
         styles: {
           label: {
             textTransform: 'uppercase',
