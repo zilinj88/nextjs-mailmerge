@@ -1,15 +1,15 @@
 import { Box, Group, Modal, Stack, Text, Title } from '@mantine/core'
 import MDEditor from '@uiw/react-md-editor'
 import { useMemo } from 'react'
-import { useAppDataStore, usePreviewModalStore } from '~/lib/hooks'
+import { usePreviewModalStore, useTemplateStoreSafe } from '~/lib/hooks'
 import { renderTemplate } from '~/lib/util'
 
 export const PreviewModal: React.FC = () => {
   const opened = usePreviewModalStore((state) => state.opened)
   const closeModal = usePreviewModalStore((state) => state.closeModal)
   const data = usePreviewModalStore((state) => state.data)
-  const subjectTemplate = useAppDataStore((state) => state.subjectTemplate)
-  const mdTemplate = useAppDataStore((state) => state.mdTemplate)
+  const subjectTemplate = useTemplateStoreSafe((state) => state.subjectTemplate) ?? ''
+  const mdTemplate = useTemplateStoreSafe((state) => state.mdTemplate) ?? ''
 
   const renderedSubject = useMemo(
     () => renderTemplate(subjectTemplate, data ?? {}),

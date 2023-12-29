@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { useStore } from '~/lib/util'
 
 interface GoogleServiceToken extends google.accounts.oauth2.TokenResponse {
   expiresAt: number
@@ -31,46 +32,31 @@ export interface UsersData {
 export interface UseAppDataStore {
   data?: UsersData
   selectedIndexes: number[]
-  subjectTemplate: string
-  mdTemplate: string
   setData: (data: UsersData | undefined) => void
   toggleSelected: (index: number) => void
   setAllSelected: (allSelected: boolean) => void
 }
 
-export const useAppDataStore = create<UseAppDataStore>()(
-  persist(
-    (set, get) => ({
-      data: undefined,
-      selectedIndexes: [],
-      subjectTemplate: '',
-      mdTemplate: '',
-      setData: (data) => {
-        // clear selection
-        set({ selectedIndexes: [], data })
-      },
-      toggleSelected: (index) => {
-        const selectedIndexes = get().selectedIndexes
-        const position = selectedIndexes.indexOf(index)
-        if (position === -1) {
-          set({ selectedIndexes: [...selectedIndexes, index] })
-        } else {
-          set({ selectedIndexes: selectedIndexes.toSpliced(position, 1) })
-        }
-      },
-      setAllSelected: (allSelected) => {
-        set({ selectedIndexes: allSelected ? get().data?.rows.map((_, index) => index) ?? [] : [] })
-      },
-    }),
-    {
-      name: 'app-data-storage',
-      partialize: (state) => ({
-        subjectTemplate: state.subjectTemplate,
-        mdTemplate: state.mdTemplate,
-      }),
+export const useAppDataStore = create<UseAppDataStore>((set, get) => ({
+  data: undefined,
+  selectedIndexes: [],
+  setData: (data) => {
+    // clear selection
+    set({ selectedIndexes: [], data })
+  },
+  toggleSelected: (index) => {
+    const selectedIndexes = get().selectedIndexes
+    const position = selectedIndexes.indexOf(index)
+    if (position === -1) {
+      set({ selectedIndexes: [...selectedIndexes, index] })
+    } else {
+      set({ selectedIndexes: selectedIndexes.toSpliced(position, 1) })
     }
-  )
-)
+  },
+  setAllSelected: (allSelected) => {
+    set({ selectedIndexes: allSelected ? get().data?.rows.map((_, index) => index) ?? [] : [] })
+  },
+}))
 
 export interface UsePreviewModalStore {
   opened: boolean
@@ -88,3 +74,22 @@ export const usePreviewModalStore = create<UsePreviewModalStore>((set) => ({
     set({ opened: false })
   },
 }))
+
+export interface UseTemplateStore {
+  subjectTemplate: string
+  mdTemplate: string
+}
+export const useTemplateStore = create<UseTemplateStore>()(
+  persist(
+    () => ({
+      subjectTemplate: '',
+      mdTemplate: '',
+    }),
+    {
+      name: 'app-data-template-storage',
+  }
+  )
+)
+
+export const useTemplateStoreSafe = <T>(selector: (state: UseTemplateStore) => T): T | undefined =>
+  useStore(useTemplateStore, selector)

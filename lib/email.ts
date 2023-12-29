@@ -1,5 +1,5 @@
 import markdownit from 'markdown-it'
-import { type UserRow, useAppDataStore } from '~/lib/hooks'
+import { type UserRow, useTemplateStore } from '~/lib/hooks'
 import { renderTemplate } from '~/lib/util'
 
 const md = markdownit()
@@ -34,7 +34,7 @@ interface SendEmailParam {
 }
 
 export const sendEmails = async (params: SendEmailParam[]): Promise<void> => {
-  const { mdTemplate, subjectTemplate } = useAppDataStore.getState()
+  const { mdTemplate, subjectTemplate } = useTemplateStore.getState()
   return Promise.all(
     params.map(({ user, to }) => {
       const subject = renderTemplate(subjectTemplate, user)
