@@ -2,6 +2,7 @@
 
 import { Button, Container, Group, Stack, Tabs, Text, Title } from '@mantine/core'
 import { type JSX, useEffect, useState } from 'react'
+import { useMutation } from 'react-query'
 import { TemplateEditor } from '~/components/template-editor'
 import { UsersTable } from '~/components/users-table'
 import { getMyEmail } from '~/lib/email'
@@ -11,6 +12,10 @@ import { requestGoogleAccessToken, signOut } from '~/lib/token'
 // User Info Component
 const UserInfoComp = () => {
   const accessToken = useGoogleService((state) => state.token)
+  const loginMutation = useMutation(requestGoogleAccessToken)
+  const isGoogleInitialized = useGoogleService(
+    (state) => state.gapiInitialized && state.gisInitialized
+  )
   const [email, setEmail] = useState('')
   const onClickSignOut = () => {
     signOut()
@@ -24,7 +29,15 @@ const UserInfoComp = () => {
   }, [accessToken])
 
   if (!accessToken) {
-    return <Button onClick={() => requestGoogleAccessToken()}>Sign in</Button>
+    return (
+      <Button
+        onClick={() => loginMutation.mutateAsync()}
+        loading={loginMutation.isLoading}
+        disabled={!isGoogleInitialized}
+      >
+        Sign in
+      </Button>
+    )
   }
   return (
     <Group>

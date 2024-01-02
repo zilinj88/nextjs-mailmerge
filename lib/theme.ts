@@ -11,7 +11,7 @@ import {
   mergeMantineTheme,
 } from '@mantine/core'
 
-type ExtendedCustomColors = 'primary' | DefaultMantineColor
+type ExtendedCustomColors = 'primary' | 'danger' | DefaultMantineColor
 
 declare module '@mantine/core' {
   export interface MantineThemeColorsOverride {
@@ -24,6 +24,7 @@ export const theme = mergeMantineTheme(
   createTheme({
     colors: {
       primary: DEFAULT_THEME.colors.blue,
+      danger: DEFAULT_THEME.colors.red,
     },
     components: {
       Button: Button.extend({
