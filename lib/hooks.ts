@@ -87,7 +87,7 @@ export const useTemplateStore = create<UseTemplateStore>()(
     }),
     {
       name: 'app-data-template-storage',
-  }
+    }
   )
 )
 

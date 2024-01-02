@@ -3,6 +3,7 @@
 import { Button, Checkbox, FileInput, Menu, Stack, Table, ThemeIcon } from '@mantine/core'
 import { IconEye, IconSend, IconSend2 } from '@tabler/icons-react'
 import papaparse from 'papaparse'
+import { useMutation } from 'react-query'
 import { PreviewModal } from '~/components/preview-modal'
 import { sendEmails } from '~/lib/email'
 import { type UserRow, type UsersData, useAppDataStore, usePreviewModalStore } from '~/lib/hooks'
@@ -35,12 +36,13 @@ interface ActionsButtonsProps {
   onPreview: () => void
   onSend: () => void
   onSendMe: () => void
+  loading: boolean
 }
-const ActionsMenu: React.FC<ActionsButtonsProps> = ({ onPreview, onSend, onSendMe }) => {
+const ActionsMenu: React.FC<ActionsButtonsProps> = ({ onPreview, onSend, onSendMe, loading }) => {
   return (
     <Menu>
       <Menu.Target>
-        <Button>Actions</Button>
+        <Button loading={loading}>Actions</Button>
       </Menu.Target>
       <Menu.Dropdown>
         <Menu.Item
@@ -79,12 +81,15 @@ const ActionsMenu: React.FC<ActionsButtonsProps> = ({ onPreview, onSend, onSendM
 }
 
 const FileInputComp: React.FC = () => {
-  const setData = useAppDataStore((state) => state.setData)
+  const parseFileMutation = useMutation(async (file: File) => {
+    const data = await parseFile(file)
+    useAppDataStore.setState({ data })
+  })
   const onFileChange = async (file: File | null) => {
     if (!file) {
       return
     }
-    setData(await parseFile(file))
+    await parseFileMutation.mutateAsync(file)
   }
   return (
     <FileInput
@@ -100,12 +105,29 @@ interface UserRowCompProps {
   index: number
 }
 
+const sendFn = async (row: UserRow) => {
+  await requestGoogleAccessToken()
+  await sendEmails([{ user: row, to: row.email }])
+}
+
+const sendMeFn = async (row: UserRow) => {
+  await requestGoogleAccessToken()
+  const { result } = await gapi.client.gmail.users.getProfile({ userId: 'me' })
+  if (!result.emailAddress) {
+    throw new Error('')
+  }
+  sendEmails([{ user: row, to: result.emailAddress }])
+}
+
 const UserRowComp: React.FC<UserRowCompProps> = ({ index }) => {
   const selectedIndexes = useAppDataStore((state) => state.selectedIndexes)
   const data = useAppDataStore((state) => state.data)
   const toggleSelected = useAppDataStore((state) => state.toggleSelected)
   const isSelected = selectedIndexes.includes(index)
   const openPreviewModal = usePreviewModalStore((state) => state.openModal)
+  const sendMutation = useMutation(sendFn)
+  const sendMeMutation = useMutation(sendMeFn)
+
   if (!data) {
     return null
   }
@@ -113,18 +135,6 @@ const UserRowComp: React.FC<UserRowCompProps> = ({ index }) => {
 
   const onPreview = () => {
     openPreviewModal(row)
-  }
-  const onSend = async () => {
-    await requestGoogleAccessToken()
-    sendEmails([{ user: row, to: row.email }])
-  }
-  const onSendMe = async () => {
-    await requestGoogleAccessToken()
-    const { result } = await gapi.client.gmail.users.getProfile({ userId: 'me' })
-    if (!result || !result.emailAddress) {
-      return
-    }
-    sendEmails([{ user: row, to: result.emailAddress }])
   }
 
   return (
@@ -142,13 +152,18 @@ const UserRowComp: React.FC<UserRowCompProps> = ({ index }) => {
         <Table.Td key={index}>{row[col] ?? ''}</Table.Td>
       ))}
       <Table.Td>
-        <ActionsMenu onPreview={onPreview} onSend={onSend} onSendMe={onSendMe} />
+        <ActionsMenu
+          onPreview={onPreview}
+          onSend={() => sendMutation.mutateAsync(row)}
+          onSendMe={() => sendMeMutation.mutateAsync(row)}
+          loading={sendMutation.isLoading || sendMeMutation.isLoading}
+        />
       </Table.Td>
     </Table.Tr>
   )
 }
 
-const onClickSendBatch = async () => {
+const sendBatchFn = async () => {
   const { data, selectedIndexes } = useAppDataStore.getState()
   if (!data || selectedIndexes.length === 0) {
     return
@@ -166,6 +181,7 @@ export const UsersTable: React.FC = () => {
   const allSelected = useAppDataStore((state) => state.selectedIndexes.length === data?.rows.length)
   const selectedRowsCount = useAppDataStore((state) => state.selectedIndexes.length)
   const setAllSelected = useAppDataStore((state) => state.setAllSelected)
+  const sendBatchMutation = useMutation(sendBatchFn)
 
   return (
     <Stack gap={'sm'} pt='md'>
@@ -176,7 +192,8 @@ export const UsersTable: React.FC = () => {
           <Button
             style={{ alignSelf: 'flex-start' }}
             disabled={selectedRowsCount === 0}
-            onClick={() => onClickSendBatch()}
+            onClick={() => sendBatchMutation.mutateAsync()}
+            loading={sendBatchMutation.isLoading}
           >
             {selectedRowsCount > 0 ? `Send ${selectedRowsCount} email(s)` : 'No rows selected'}
           </Button>
