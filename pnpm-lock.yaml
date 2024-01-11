@@ -11,14 +11,17 @@ patchedDependencies:
 
 dependencies:
   '@mantine/core':
-    specifier: ^7.3.2
-    version: 7.3.2(@mantine/hooks@7.3.2)(@types/react@18.2.42)(react-dom@18.2.0)(react@18.2.0)
+    specifier: ^7.4.1
+    version: 7.4.1(@mantine/hooks@7.4.1)(@types/react@18.2.42)(react-dom@18.2.0)(react@18.2.0)
+  '@mantine/dropzone':
+    specifier: ^7.4.1
+    version: 7.4.1(@mantine/core@7.4.1)(@mantine/hooks@7.4.1)(react-dom@18.2.0)(react@18.2.0)
   '@mantine/hooks':
-    specifier: ^7.3.2
-    version: 7.3.2(react@18.2.0)
+    specifier: ^7.4.1
+    version: 7.4.1(react@18.2.0)
   '@mantine/notifications':
-    specifier: ^7.3.2
-    version: 7.3.2(@mantine/core@7.3.2)(@mantine/hooks@7.3.2)(react-dom@18.2.0)(react@18.2.0)
+    specifier: ^7.4.1
+    version: 7.4.1(@mantine/core@7.4.1)(@mantine/hooks@7.4.1)(react-dom@18.2.0)(react@18.2.0)
   '@tabler/icons-react':
     specifier: ^2.44.0
     version: 2.44.0(react@18.2.0)
@@ -31,6 +34,9 @@ dependencies:
   next:
     specifier: 14.0.4
     version: 14.0.4(@babel/core@7.23.5)(react-dom@18.2.0)(react@18.2.0)
+  nuqs:
+    specifier: ^1.14.1
+    version: 1.14.1(next@14.0.4)
   react:
     specifier: ^18
     version: 18.2.0
@@ -1159,15 +1165,15 @@ packages:
       '@jridgewell/resolve-uri': 3.1.1
       '@jridgewell/sourcemap-codec': 1.4.15
 
-  /@mantine/core@7.3.2(@mantine/hooks@7.3.2)(@types/react@18.2.42)(react-dom@18.2.0)(react@18.2.0):
-    resolution: {integrity: sha512-CwAuQogVLcLR7O9e1eOgi3gtk4XX6cnaqevAxzJJpIOIyCnHiQ3cEGINVXyUUjUUipBlvK3sqz3NPGJ2ekLFDQ==}
+  /@mantine/core@7.4.1(@mantine/hooks@7.4.1)(@types/react@18.2.42)(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-crz9BemmwR8V/h6db9FgznCp0Ssp6rCUYkBBO4JprpH8NDSEblHyWcZZo43IuA1vZptp8eyrhRNJ4nfe8CAYFQ==}
     peerDependencies:
-      '@mantine/hooks': 7.3.2
+      '@mantine/hooks': 7.4.1
       react: ^18.2.0
       react-dom: ^18.2.0
     dependencies:
       '@floating-ui/react': 0.24.8(react-dom@18.2.0)(react@18.2.0)
-      '@mantine/hooks': 7.3.2(react@18.2.0)
+      '@mantine/hooks': 7.4.1(react@18.2.0)
       clsx: 2.0.0
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
@@ -1179,32 +1185,47 @@ packages:
       - '@types/react'
     dev: false
 
-  /@mantine/hooks@7.3.2(react@18.2.0):
-    resolution: {integrity: sha512-xgumuuI3PBWXff5N02HCI7PEy25mDEdyXDQklUYK93J6FKwpcosyZnGVitoUrV1gLtYYa9ZudeAWdhHuh/CpOg==}
+  /@mantine/dropzone@7.4.1(@mantine/core@7.4.1)(@mantine/hooks@7.4.1)(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-VeexJtIDrqf22udZcnxhQSR0TXT1/n2EzoTTw5OCgo118UVDfjMkH0o+go8koN+9S8BthXisy5e+W4CYccqaoQ==}
+    peerDependencies:
+      '@mantine/core': 7.4.1
+      '@mantine/hooks': 7.4.1
+      react: ^18.2.0
+      react-dom: ^18.2.0
+    dependencies:
+      '@mantine/core': 7.4.1(@mantine/hooks@7.4.1)(@types/react@18.2.42)(react-dom@18.2.0)(react@18.2.0)
+      '@mantine/hooks': 7.4.1(react@18.2.0)
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+      react-dropzone-esm: 15.0.1(react@18.2.0)
+    dev: false
+
+  /@mantine/hooks@7.4.1(react@18.2.0):
+    resolution: {integrity: sha512-7gV9YR+xZ1L69MGVaSNwV0gaxIz4bCZuGxXTtnuaamDcO/4YiNDtmvdD7/jC/RTa1iJMnZ6YiYrcPXLOn+8saQ==}
     peerDependencies:
       react: ^18.2.0
     dependencies:
       react: 18.2.0
     dev: false
 
-  /@mantine/notifications@7.3.2(@mantine/core@7.3.2)(@mantine/hooks@7.3.2)(react-dom@18.2.0)(react@18.2.0):
-    resolution: {integrity: sha512-XOzgm4pm4XszavVN0QUjN+IP0xiG2IochxJSz/FduTI0r3u1WxdpvDYlOvEJpHhtWvyqI8W8rx6cPJaD2HdAwQ==}
+  /@mantine/notifications@7.4.1(@mantine/core@7.4.1)(@mantine/hooks@7.4.1)(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-tDp2le/CsX7l8X4Kgx7eUQ2tdC8Z8cscPjRv2RPlkXI6giFYp0agOvc3BhwxED8xFDNZC4BkC+uoOonB9XTmdg==}
     peerDependencies:
-      '@mantine/core': 7.3.2
-      '@mantine/hooks': 7.3.2
+      '@mantine/core': 7.4.1
+      '@mantine/hooks': 7.4.1
       react: ^18.2.0
       react-dom: ^18.2.0
     dependencies:
-      '@mantine/core': 7.3.2(@mantine/hooks@7.3.2)(@types/react@18.2.42)(react-dom@18.2.0)(react@18.2.0)
-      '@mantine/hooks': 7.3.2(react@18.2.0)
-      '@mantine/store': 7.3.2(react@18.2.0)
+      '@mantine/core': 7.4.1(@mantine/hooks@7.4.1)(@types/react@18.2.42)(react-dom@18.2.0)(react@18.2.0)
+      '@mantine/hooks': 7.4.1(react@18.2.0)
+      '@mantine/store': 7.4.1(react@18.2.0)
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
       react-transition-group: 4.4.5(react-dom@18.2.0)(react@18.2.0)
     dev: false
 
-  /@mantine/store@7.3.2(react@18.2.0):
-    resolution: {integrity: sha512-M1eWHzTRCeCFvrpFhXKIM9zblrlIT5/XrMue/fP2HrkA43dpkgq+ArnZkN3LhG9lWR/EKbRwQWDhDIvdLtfD7w==}
+  /@mantine/store@7.4.1(react@18.2.0):
+    resolution: {integrity: sha512-BWU2b+t8Rnlc+GsPMEhGzU0hzZIuf58miZvxDXDnXr8NcBubSPhoR97bSFQ81UAvDAczI4xqOQi8vVUcoKa+ng==}
     peerDependencies:
       react: ^18.2.0
     dependencies:
@@ -1218,8 +1239,8 @@ packages:
       '@types/gapi.client.discovery-v1': 0.0.4
     dev: true
 
-  /@maxim_mazurok/gapi.client.gmail-v1@0.0.20231218:
-    resolution: {integrity: sha512-DUoRZUuylNC7oQbUVhYTXP6n0ZIpXxbRVVzQUQ2Eu1eEIhFE6Zmk23BUpTve3tfYMsD19CnBz/xik9UlpfaQCg==}
+  /@maxim_mazurok/gapi.client.gmail-v1@0.0.20240108:
+    resolution: {integrity: sha512-toZfy2Se+K0g09gqGWjjRHs9c2MEbs90ar0F3FA6VRHZejWUo5xILCl6yzU3ic+TwqJrsAgllJ8DmUDyybko1A==}
     dependencies:
       '@types/gapi.client': 1.0.8
       '@types/gapi.client.discovery-v1': 0.0.4
@@ -1455,7 +1476,7 @@ packages:
   /@types/gapi.client.gmail-v1@0.0.4:
     resolution: {integrity: sha512-eky4t4mb6emgvyJh+qhDJPX3/nhXg/QroOVLAjM13Facyz3zfC7PHuRTCDARR7PFUh3V4nqLhhysq/vv0mLe4g==}
     dependencies:
-      '@maxim_mazurok/gapi.client.gmail-v1': 0.0.20231218
+      '@maxim_mazurok/gapi.client.gmail-v1': 0.0.20240108
     dev: true
 
   /@types/gapi.client@1.0.8:
@@ -5222,6 +5243,10 @@ packages:
     resolution: {integrity: sha512-2yyAR8qBkN3YuheJanUpWC5U3bb5osDywNB8RzDVlDwDHbocAJveqqj1u8+SVD7jkWT4yvsHCpWqqWqAxb0zCA==}
     dev: true
 
+  /mitt@3.0.1:
+    resolution: {integrity: sha512-vKivATfr97l2/QBCYAkXYDbrIWPM2IIKEl7YPhjCvKlG3kE2gm+uBo6nEXK3M5/Ffh/FLpKExzOQ3JJoJGFKBw==}
+    dev: false
+
   /ms@2.1.2:
     resolution: {integrity: sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==}
 
@@ -5311,6 +5336,15 @@ packages:
     resolution: {integrity: sha512-lqjrjmaOoAnWfMmBPL+XNnynZh2+swxiX3WUE0s4yEHI6m+AwrK2UZOimIRl3X/4QctVqS8AiZjFqyOGrMXb/w==}
     dependencies:
       boolbase: 1.0.0
+    dev: false
+
+  /nuqs@1.14.1(next@14.0.4):
+    resolution: {integrity: sha512-UxrDrdVQrq6O37yq2OWwCh3t/K/GsCoSchTc1tWC8VOproK3/Z58KXKAwRdZN2+vAGgdwyKv2StVOaRKw16p+g==}
+    peerDependencies:
+      next: '>=13.4 <14.0.2 || ^14.0.3'
+    dependencies:
+      mitt: 3.0.1
+      next: 14.0.4(@babel/core@7.23.5)(react-dom@18.2.0)(react@18.2.0)
     dev: false
 
   /object-assign@4.1.1:
@@ -5681,6 +5715,16 @@ packages:
       loose-envify: 1.4.0
       react: 18.2.0
       scheduler: 0.23.0
+    dev: false
+
+  /react-dropzone-esm@15.0.1(react@18.2.0):
+    resolution: {integrity: sha512-RdeGpqwHnoV/IlDFpQji7t7pTtlC2O1i/Br0LWkRZ9hYtLyce814S71h5NolnCZXsIN5wrZId6+8eQj2EBnEzg==}
+    engines: {node: '>= 10.13'}
+    peerDependencies:
+      react: '>= 16.8 || 18.0.0'
+    dependencies:
+      prop-types: 15.8.1
+      react: 18.2.0
     dev: false
 
   /react-is@16.13.1:

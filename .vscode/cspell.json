@@ -9,6 +9,7 @@
     "gapi",
     "mantine",
     "markdownit",
+    "nuqs",
     "papaparse",
     "partialize",
     "tabler",
