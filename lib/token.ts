@@ -26,6 +26,9 @@ export const requestGoogleAccessToken = (): Promise<google.accounts.oauth2.Token
         // Reject with error
         reject(new Error(response.error, { cause: response }))
       },
+      error_callback: (error) => {
+        reject(error)
+      },
     })
     // Skip account selection when token is already set for gapi.client
     // Can be reset by sign out button

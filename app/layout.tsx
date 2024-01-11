@@ -5,6 +5,7 @@ import '@mantine/notifications/styles.css'
 import type { Metadata } from 'next'
 import { type JSX } from 'react'
 import { GoogleApi } from '~/components/google-api'
+import { QueryClientWrapper } from '~/components/query-client-wrapper'
 import { theme } from '~/lib/theme'
 
 export const metadata: Metadata = {
@@ -21,7 +22,7 @@ const RootLayout = ({ children }: { children: React.ReactNode }): JSX.Element =>
       <body>
         <MantineProvider theme={theme}>
           <Notifications />
-          {children}
+          <QueryClientWrapper>{children}</QueryClientWrapper>
         </MantineProvider>
       </body>
       <GoogleApi />
