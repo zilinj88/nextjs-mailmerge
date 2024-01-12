@@ -17,15 +17,13 @@ const UserRowComp: React.FC<UserRowCompProps> = ({ index }) => {
   }
   const row = atOrThrow(data.rows, index)
   return (
-    <Table.Tr key={index} bg={isSelected ? theme.colors.blue[0] : undefined}>
+    <Table.Tr
+      key={index}
+      bg={isSelected ? theme.colors.blue[0] : undefined}
+      onClick={() => useAppDataStore.setState({ selectedIndex: index })}
+    >
       <Table.Td>
-        <Radio
-          aria-label='Select user'
-          checked={isSelected}
-          onChange={() => {
-            useAppDataStore.setState({ selectedIndex: index })
-          }}
-        />
+        <Radio aria-label='Select user' checked={isSelected} />
       </Table.Td>
       {data.columns.map((col, index) => (
         <Table.Td key={index}>{row[col] ?? ''}</Table.Td>
