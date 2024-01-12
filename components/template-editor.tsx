@@ -8,7 +8,7 @@ import { UsersTable } from '~/components/users-table'
 import { sendEmails } from '~/lib/email'
 import { type UserRow, useAppDataStore, useTemplateStore, useTemplateStoreSafe } from '~/lib/hooks'
 import { requestGoogleAccessToken } from '~/lib/token'
-import { atOrThrow, renderTemplate } from '~/lib/util'
+import { renderTemplate } from '~/lib/util'
 
 const EditorComp: React.FC = () => {
   const subjectTemplate = useTemplateStore((state) => state.subjectTemplate)
@@ -75,14 +75,11 @@ const sendMeFn = async (row: UserRow) => {
 }
 
 const sendBatchFn = async () => {
-  const { data, selectedIndexes } = useAppDataStore.getState()
-  if (!data || selectedIndexes.length === 0) {
+  const { data } = useAppDataStore.getState()
+  if (!data) {
     return
   }
-  const params = selectedIndexes.map((i) => {
-    const user = atOrThrow(data.rows, i)
-    return { user, to: user.email }
-  })
+  const params = data.rows.map((user) => ({ user, to: user.email }))
   await requestGoogleAccessToken()
   await sendEmails(params)
 }
@@ -107,6 +104,7 @@ export const TemplateEditor: React.FC = () => {
     sendMeMutation.mutateAsync(currentUser)
   }
 
+  const isDataAvailable = rows && rows.length > 0
   return (
     <Stack p='md' gap={'xl'}>
       <SimpleGrid cols={{ base: 1, md: 2 }} verticalSpacing='xl' spacing={'xl'}>
@@ -116,35 +114,38 @@ export const TemplateEditor: React.FC = () => {
           </Title>
           <EditorComp />
         </Box>
-        <Box>
-          <Title order={3} mb='xs'>
-            Preview
-          </Title>
-          <PreviewComp data={currentUser} />
-        </Box>
+        {isDataAvailable && (
+          <Box>
+            <Title order={3} mb='xs'>
+              Preview
+            </Title>
+            <PreviewComp data={currentUser} />
+          </Box>
+        )}
       </SimpleGrid>
-      <Stack>
-        <Group justify='space-between'>
-          <Title order={3}>Users</Title>
-          <Group>
-            <Button
-              disabled={!currentUser}
-              loading={sendMeMutation.isLoading}
-              onClick={onClickSendMe}
-            >
-              Send me a sample
-            </Button>
-            <Button
-              disabled={!rows || !rows.length}
-              loading={sendBatchMutation.isLoading}
-              onClick={() => sendBatchMutation.mutateAsync()}
-            >
-              Send to everyone
-            </Button>
+      {isDataAvailable && (
+        <Stack>
+          <Group justify='space-between'>
+            <Title order={3}>Users</Title>
+            <Group>
+              <Button
+                disabled={!currentUser}
+                loading={sendMeMutation.isLoading}
+                onClick={onClickSendMe}
+              >
+                Send me a sample
+              </Button>
+              <Button
+                loading={sendBatchMutation.isLoading}
+                onClick={() => sendBatchMutation.mutateAsync()}
+              >
+                Send to everyone
+              </Button>
+            </Group>
           </Group>
-        </Group>
-        <UsersTable />
-      </Stack>
+          <UsersTable />
+        </Stack>
+      )}
     </Stack>
   )
 }

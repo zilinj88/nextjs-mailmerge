@@ -3,8 +3,8 @@
 import { Button, Group, Stack, Text } from '@mantine/core'
 import { Dropzone } from '@mantine/dropzone'
 import { useRouter } from 'next/navigation'
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { useQuery, useQueryClient } from 'react-query'
+import { useCallback, useRef, useState } from 'react'
+import { handleError } from '~/lib/handle-error'
 import { useAppDataStore } from '~/lib/hooks'
 import { parseFile } from '~/lib/parse'
 import { atOrThrow } from '~/lib/util'
@@ -13,52 +13,44 @@ const mkSampleFilePath = () => {
   return `${window.location.origin}/sample.csv`
 }
 
-export const CSVData: React.FC = () => {
-  const openRef = useRef<() => void>(null)
-  const [file, setFile] = useState<File | string>()
+/**
+ * useQuery cache is annoying handle case of uploading same files,
+ * So use this hook
+ * @returns
+ */
+const useParseFile = () => {
   const router = useRouter()
-  const { data, isLoading } = useQuery({
-    queryKey: [file],
-    enabled: !!file,
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    queryFn: () => parseFile(file!),
-    staleTime: Infinity,
-    cacheTime: Infinity,
-  })
-  const client = useQueryClient()
-  const navigateToTemplate = useCallback(() => {
-    router.push('?tab=template')
-  }, [router])
+  const [isLoading, setLoading] = useState(false)
+  const parseAsync = useCallback(
+    async (file: File | string) => {
+      setLoading(true)
+      try {
+        const data = await parseFile(file)
+        useAppDataStore.getState().setData(data)
+        router.push('?tab=template')
+      } catch (e) {
+        handleError(e)
+      } finally {
+        setLoading(false)
+      }
+    },
+    [router]
+  )
+  return { isLoading, parseAsync }
+}
 
-  useEffect(() => {
-    if (data) {
-      useAppDataStore.setState({ data })
-      navigateToTemplate()
-    }
-  }, [data, navigateToTemplate])
+export const CSVData: React.FC = () => {
+  const { isLoading, parseAsync } = useParseFile()
+  const openRef = useRef<() => void>(null)
 
   const onClickUpload = () => {
     openRef.current?.()
   }
 
-  const checkIfCached = (key: string | File) => {
-    const cached = client.getQueryData([key])
-    if (cached) {
-      // This is necessary because when the same file is selected, and the
-      // queryResult.data does not change it won't navigate to template page.
-      navigateToTemplate()
-    }
-  }
-
-  const onChangeFile = (file: File | string) => {
-    setFile(file)
-    checkIfCached(file)
-  }
-
   return (
     <Dropzone
       activateOnClick={false}
-      onDrop={(files) => onChangeFile(atOrThrow(files, 0))}
+      onDrop={(files) => parseAsync(atOrThrow(files, 0))}
       openRef={openRef}
       accept={['text/csv', 'text/tab-separated-values']}
       mt={'xl'}
@@ -72,7 +64,7 @@ export const CSVData: React.FC = () => {
           <Button onClick={onClickUpload} loading={isLoading}>
             Upload
           </Button>
-          <Button onClick={() => onChangeFile(mkSampleFilePath())} loading={isLoading}>
+          <Button onClick={() => parseAsync(mkSampleFilePath())} loading={isLoading}>
             Sample Data
           </Button>
         </Group>

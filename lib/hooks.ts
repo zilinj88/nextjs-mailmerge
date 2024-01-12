@@ -31,18 +31,16 @@ export interface UsersData {
 
 export interface UseAppDataStore {
   data?: UsersData
-  selectedIndexes: number[]
   selectedIndex: number | undefined
   setData: (data: UsersData | undefined) => void
 }
 
 export const useAppDataStore = create<UseAppDataStore>((set) => ({
   data: undefined,
-  selectedIndexes: [],
   selectedIndex: undefined,
   setData: (data) => {
     // clear selection
-    set({ selectedIndexes: [], data, selectedIndex: undefined })
+    set({ data, selectedIndex: data && data.rows.length > 0 ? 0 : undefined })
   },
 }))
 
