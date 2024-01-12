@@ -49,12 +49,15 @@ export const useAppDataStore = create<UseAppDataStore>((set) => ({
 export interface UseTemplateStore {
   subjectTemplate: string
   mdTemplate: string
+  // Hack: To check if this store is loaded from local storage
+  isLoaded: boolean
 }
 export const useTemplateStore = create<UseTemplateStore>()(
   persist(
     () => ({
       subjectTemplate: '',
       mdTemplate: '',
+      isLoaded: true as boolean,
     }),
     {
       name: 'app-data-template-storage',

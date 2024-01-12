@@ -2,7 +2,7 @@
 
 import { Box, Button, Group, Input, SimpleGrid, Stack, Text, TextInput, Title } from '@mantine/core'
 import MDEditor from '@uiw/react-md-editor'
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import { useMutation } from 'react-query'
 import { UsersTable } from '~/components/users-table'
 import { sendEmails } from '~/lib/email'
@@ -11,13 +11,14 @@ import { requestGoogleAccessToken } from '~/lib/token'
 import { atOrThrow, renderTemplate } from '~/lib/util'
 
 const EditorComp: React.FC = () => {
-  const subjectTemplate = useTemplateStoreSafe((state) => state.subjectTemplate) ?? ''
-  const mdTemplate = useTemplateStoreSafe((state) => state.mdTemplate) ?? ''
+  const subjectTemplate = useTemplateStore((state) => state.subjectTemplate)
+  const mdTemplate = useTemplateStore((state) => state.mdTemplate)
+  const [mdValue, setMdValue] = useState(mdTemplate)
   return (
     <Stack gap='xl'>
       <TextInput
         label='Subject template'
-        value={subjectTemplate}
+        defaultValue={subjectTemplate}
         onChange={(event) =>
           useTemplateStore.setState({ subjectTemplate: event.currentTarget.value })
         }
@@ -26,8 +27,11 @@ const EditorComp: React.FC = () => {
         <Input.Label>Mail body template</Input.Label>
         <Box data-color-mode='light'>
           <MDEditor
-            value={mdTemplate}
-            onChange={(value) => useTemplateStore.setState({ mdTemplate: value ?? '' })}
+            value={mdValue}
+            onChange={(value) => {
+              setMdValue(value ?? '')
+              useTemplateStore.setState({ mdTemplate: value ?? '' })
+            }}
             preview='edit'
           />
         </Box>
@@ -39,8 +43,8 @@ const EditorComp: React.FC = () => {
 const PreviewComp: React.FC<{
   data?: UserRow
 }> = ({ data }) => {
-  const subjectTemplate = useTemplateStoreSafe((state) => state.subjectTemplate) ?? ''
-  const mdTemplate = useTemplateStoreSafe((state) => state.mdTemplate) ?? ''
+  const subjectTemplate = useTemplateStore((state) => state.subjectTemplate)
+  const mdTemplate = useTemplateStore((state) => state.mdTemplate)
 
   const renderedSubject = useMemo(
     () => renderTemplate(subjectTemplate, data ?? {}),
@@ -89,6 +93,12 @@ export const TemplateEditor: React.FC = () => {
   const currentUser = typeof selectedIndex === 'number' ? rows?.at(selectedIndex) : undefined
   const sendMeMutation = useMutation(sendMeFn)
   const sendBatchMutation = useMutation(sendBatchFn)
+
+  // Hack: Make sure the Preview & Markdown component read correct from TemplateStore
+  const isLoaded = useTemplateStoreSafe((state) => state.isLoaded)
+  if (!isLoaded) {
+    return null
+  }
 
   const onClickSendMe = () => {
     if (!currentUser) {
