@@ -129,6 +129,7 @@ export const TemplateEditor: React.FC = () => {
             <Title order={3}>Users ({rows.length})</Title>
             <Group>
               <Button
+                rightSection={sendMeMutation.isSuccess ? '✓' : undefined}
                 disabled={!currentUser}
                 loading={sendMeMutation.isLoading}
                 onClick={onClickSendMe}
@@ -136,6 +137,7 @@ export const TemplateEditor: React.FC = () => {
                 Send me a sample
               </Button>
               <Button
+                rightSection={sendBatchMutation.isSuccess ? '✓' : undefined}
                 loading={sendBatchMutation.isLoading}
                 onClick={() => sendBatchMutation.mutateAsync()}
               >
