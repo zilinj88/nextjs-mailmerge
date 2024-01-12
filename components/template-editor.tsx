@@ -3,6 +3,7 @@
 import { Box, Button, Group, Input, SimpleGrid, Stack, Text, TextInput, Title } from '@mantine/core'
 import MDEditor from '@uiw/react-md-editor'
 import React, { useMemo } from 'react'
+import { useMutation } from 'react-query'
 import { UsersTable } from '~/components/users-table'
 import { sendEmails } from '~/lib/email'
 import { type UserRow, useAppDataStore, useTemplateStore, useTemplateStoreSafe } from '~/lib/hooks'
@@ -86,12 +87,14 @@ export const TemplateEditor: React.FC = () => {
   const rows = useAppDataStore((state) => state.data?.rows)
   const selectedIndex = useAppDataStore((state) => state.selectedIndex)
   const currentUser = typeof selectedIndex === 'number' ? rows?.at(selectedIndex) : undefined
+  const sendMeMutation = useMutation(sendMeFn)
+  const sendBatchMutation = useMutation(sendBatchFn)
 
   const onClickSendMe = () => {
     if (!currentUser) {
       return
     }
-    sendMeFn(currentUser)
+    sendMeMutation.mutateAsync(currentUser)
   }
 
   return (
@@ -114,10 +117,18 @@ export const TemplateEditor: React.FC = () => {
         <Group justify='space-between'>
           <Title order={3}>Users</Title>
           <Group>
-            <Button disabled={!currentUser} onClick={onClickSendMe}>
+            <Button
+              disabled={!currentUser}
+              loading={sendMeMutation.isLoading}
+              onClick={onClickSendMe}
+            >
               Send me a sample
             </Button>
-            <Button disabled={!rows || !rows.length} onClick={() => sendBatchFn()}>
+            <Button
+              disabled={!rows || !rows.length}
+              loading={sendBatchMutation.isLoading}
+              onClick={() => sendBatchMutation.mutateAsync()}
+            >
               Send to everyone
             </Button>
           </Group>
