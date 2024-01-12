@@ -126,7 +126,7 @@ export const TemplateEditor: React.FC = () => {
       {isDataAvailable && (
         <Stack>
           <Group justify='space-between'>
-            <Title order={3}>Users</Title>
+            <Title order={3}>Users ({rows.length})</Title>
             <Group>
               <Button
                 disabled={!currentUser}
