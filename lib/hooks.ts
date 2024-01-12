@@ -31,59 +31,31 @@ export interface UsersData {
 
 export interface UseAppDataStore {
   data?: UsersData
-  selectedIndexes: number[]
+  selectedIndex: number | undefined
   setData: (data: UsersData | undefined) => void
-  toggleSelected: (index: number) => void
-  setAllSelected: (allSelected: boolean) => void
 }
 
-export const useAppDataStore = create<UseAppDataStore>((set, get) => ({
+export const useAppDataStore = create<UseAppDataStore>((set) => ({
   data: undefined,
-  selectedIndexes: [],
+  selectedIndex: undefined,
   setData: (data) => {
     // clear selection
-    set({ selectedIndexes: [], data })
-  },
-  toggleSelected: (index) => {
-    const selectedIndexes = get().selectedIndexes
-    const position = selectedIndexes.indexOf(index)
-    if (position === -1) {
-      set({ selectedIndexes: [...selectedIndexes, index] })
-    } else {
-      set({ selectedIndexes: selectedIndexes.toSpliced(position, 1) })
-    }
-  },
-  setAllSelected: (allSelected) => {
-    set({ selectedIndexes: allSelected ? get().data?.rows.map((_, index) => index) ?? [] : [] })
-  },
-}))
-
-export interface UsePreviewModalStore {
-  opened: boolean
-  data?: UserRow
-  openModal: (data: UserRow) => void
-  closeModal: () => void
-}
-export const usePreviewModalStore = create<UsePreviewModalStore>((set) => ({
-  opened: false,
-  data: undefined,
-  openModal: (data: UserRow) => {
-    set({ opened: true, data })
-  },
-  closeModal: () => {
-    set({ opened: false })
+    set({ data, selectedIndex: data && data.rows.length > 0 ? 0 : undefined })
   },
 }))
 
 export interface UseTemplateStore {
   subjectTemplate: string
   mdTemplate: string
+  // Hack: To check if this store is loaded from local storage
+  isLoaded: boolean
 }
 export const useTemplateStore = create<UseTemplateStore>()(
   persist(
     () => ({
       subjectTemplate: '',
       mdTemplate: '',
+      isLoaded: true as boolean,
     }),
     {
       name: 'app-data-template-storage',

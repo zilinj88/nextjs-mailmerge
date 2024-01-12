@@ -3,11 +3,12 @@
 import { Button, Container, Group, Stack, Tabs, Text, Title } from '@mantine/core'
 import { type JSX, useEffect, useState } from 'react'
 import { useMutation } from 'react-query'
+import { CSVData } from '~/components/csv-data'
 import { TemplateEditor } from '~/components/template-editor'
-import { UsersTable } from '~/components/users-table'
 import { getMyEmail } from '~/lib/email'
 import { useGoogleService } from '~/lib/hooks'
 import { requestGoogleAccessToken, signOut } from '~/lib/token'
+import { useNavigationTabs } from '~/lib/use-navigation-tabs'
 
 // User Info Component
 const UserInfoComp = () => {
@@ -52,6 +53,11 @@ const UserInfoComp = () => {
 }
 
 const Home = (): JSX.Element => {
+  const navigationTabs = useNavigationTabs({
+    tabs: ['csv-data', 'template'],
+    defaultTab: 'csv-data',
+  })
+
   return (
     <Container size='xl' mt='lg'>
       <Stack gap='md'>
@@ -59,13 +65,13 @@ const Home = (): JSX.Element => {
           <Title order={1}>Mail Merge</Title>
           <UserInfoComp />
         </Group>
-        <Tabs defaultValue='users'>
+        <Tabs {...navigationTabs}>
           <Tabs.List>
-            <Tabs.Tab value='users'>Users</Tabs.Tab>
+            <Tabs.Tab value='csv-data'>CSV Data</Tabs.Tab>
             <Tabs.Tab value='template'>Template</Tabs.Tab>
           </Tabs.List>
-          <Tabs.Panel value='users'>
-            <UsersTable />
+          <Tabs.Panel value='csv-data'>
+            <CSVData />
           </Tabs.Panel>
           <Tabs.Panel value='template'>
             <TemplateEditor />

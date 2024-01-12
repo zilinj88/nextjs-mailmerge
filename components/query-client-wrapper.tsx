@@ -1,26 +1,16 @@
 'use client'
 
-import { Text } from '@mantine/core'
-import { showNotification } from '@mantine/notifications'
 import type { PropsWithChildren } from 'react'
-import { MutationCache, QueryClient, QueryClientProvider } from 'react-query'
-
-const handleError = (error: unknown) => {
-  const message = error instanceof Error ? error.message : 'Unknown error'
-  showNotification({
-    title: 'Error',
-    message: (
-      <>
-        <Text>{message}</Text>
-      </>
-    ),
-    color: 'danger',
-    autoClose: false,
-  })
-}
+import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from 'react-query'
+import { handleError } from '~/lib/handle-error'
 
 const queryClient = new QueryClient({
   mutationCache: new MutationCache({
+    onError: (error) => {
+      handleError(error)
+    },
+  }),
+  queryCache: new QueryCache({
     onError: (error) => {
       handleError(error)
     },
