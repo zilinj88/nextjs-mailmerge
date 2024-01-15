@@ -43,6 +43,7 @@ export const requestGoogleAccessToken = (): Promise<google.accounts.oauth2.Token
 export const signOut = (): void => {
   useGoogleService.setState({ token: undefined })
   const accessToken = gapi.client.getToken()
+  // No timing attack issues because this is not a secret (exposed to client)
   if (accessToken !== null) {
     google.accounts.oauth2.revoke(accessToken.access_token, () => {})
     gapi.client.setToken(null)
