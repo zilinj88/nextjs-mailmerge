@@ -5,9 +5,8 @@ import MDEditor from '@uiw/react-md-editor'
 import React, { useMemo, useState } from 'react'
 import { useMutation } from 'react-query'
 import { UsersTable } from '~/components/users-table'
-import { sendEmails } from '~/lib/email'
+import { sendBatchFn, sendMeFn } from '~/lib/email'
 import { type UserRow, useAppDataStore, useTemplateStore, useTemplateStoreSafe } from '~/lib/hooks'
-import { requestGoogleAccessToken } from '~/lib/token'
 import { renderTemplate } from '~/lib/util'
 
 const EditorComp: React.FC = () => {
@@ -63,25 +62,6 @@ const PreviewComp: React.FC<{
       </Stack>
     </Stack>
   )
-}
-
-const sendMeFn = async (row: UserRow) => {
-  await requestGoogleAccessToken()
-  const { result } = await gapi.client.gmail.users.getProfile({ userId: 'me' })
-  if (!result.emailAddress) {
-    throw new Error('')
-  }
-  sendEmails([{ user: row, to: result.emailAddress }])
-}
-
-const sendBatchFn = async () => {
-  const { data } = useAppDataStore.getState()
-  if (!data) {
-    return
-  }
-  const params = data.rows.map((user) => ({ user, to: user.email }))
-  await requestGoogleAccessToken()
-  await sendEmails(params)
 }
 
 export const TemplateEditor: React.FC = () => {

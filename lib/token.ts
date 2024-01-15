@@ -42,10 +42,9 @@ export const requestGoogleAccessToken = (): Promise<google.accounts.oauth2.Token
 
 export const signOut = (): void => {
   useGoogleService.setState({ token: undefined })
-  const token = gapi.client.getToken()
-  // eslint-disable-next-line security/detect-possible-timing-attacks
-  if (token !== null) {
-    google.accounts.oauth2.revoke(token.access_token, () => {})
+  const accessToken = gapi.client.getToken()
+  if (accessToken !== null) {
+    google.accounts.oauth2.revoke(accessToken.access_token, () => {})
     gapi.client.setToken(null)
   }
 }
