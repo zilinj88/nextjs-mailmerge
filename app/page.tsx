@@ -1,14 +1,31 @@
 'use client'
 
 import { Button, Container, Group, Stack, Tabs, Text, Title } from '@mantine/core'
-import { type JSX, useEffect, useState } from 'react'
-import { useMutation } from 'react-query'
+import { type JSX } from 'react'
+import { useMutation, useQuery } from 'react-query'
 import { CSVData } from '~/components/csv-data'
 import { TemplateEditor } from '~/components/template-editor'
 import { getMyEmail } from '~/lib/email'
 import { useGoogleService } from '~/lib/hooks'
 import { requestGoogleAccessToken, signOut } from '~/lib/token'
 import { useNavigationTabs } from '~/lib/use-navigation-tabs'
+
+const useGetMyEmailQuery = () => {
+  const accessToken = useGoogleService((state) => state.token)
+  const { data: email } = useQuery({
+    queryKey: [accessToken],
+    queryFn: () => {
+      if (!accessToken) {
+        return Promise.resolve('')
+      }
+      return getMyEmail()
+    },
+    initialData: '',
+    cacheTime: Infinity,
+    staleTime: Infinity,
+  })
+  return email
+}
 
 // User Info Component
 const UserInfoComp = () => {
@@ -17,17 +34,10 @@ const UserInfoComp = () => {
   const isGoogleInitialized = useGoogleService(
     (state) => state.gapiInitialized && state.gisInitialized
   )
-  const [email, setEmail] = useState('')
+  const email = useGetMyEmailQuery()
   const onClickSignOut = () => {
     signOut()
   }
-  useEffect(() => {
-    if (accessToken) {
-      getMyEmail().then((email) => setEmail(email))
-    } else {
-      setEmail('')
-    }
-  }, [accessToken])
 
   if (!accessToken) {
     return (

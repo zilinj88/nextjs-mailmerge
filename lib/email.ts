@@ -1,5 +1,6 @@
 import markdownit from 'markdown-it'
-import { type UserRow, useTemplateStore } from '~/lib/hooks'
+import { type UserRow, useAppDataStore, useTemplateStore } from '~/lib/hooks'
+import { requestGoogleAccessToken } from '~/lib/token'
 import { renderTemplate } from '~/lib/util'
 
 const md = markdownit()
@@ -50,4 +51,23 @@ export const getMyEmail = async (): Promise<string> => {
     throw new Error('Failed to get email address')
   }
   return result.emailAddress
+}
+
+export const sendMeFn = async (row: UserRow): Promise<void> => {
+  await requestGoogleAccessToken()
+  const { result } = await gapi.client.gmail.users.getProfile({ userId: 'me' })
+  if (!result.emailAddress) {
+    throw new Error('')
+  }
+  sendEmails([{ user: row, to: result.emailAddress }])
+}
+
+export const sendBatchFn = async (): Promise<void> => {
+  const { data } = useAppDataStore.getState()
+  if (!data) {
+    return
+  }
+  const params = data.rows.map((user) => ({ user, to: user.email }))
+  await requestGoogleAccessToken()
+  await sendEmails(params)
 }
