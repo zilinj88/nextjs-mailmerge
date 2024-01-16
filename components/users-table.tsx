@@ -20,6 +20,9 @@ const UserRowComp: React.FC<UserRowCompProps> = ({ index }) => {
     return null
   }
   const row = atOrThrow(data.rows, index)
+  const selectRow = (index: number) => {
+    useAppDataStore.setState({ selectedIndex: index })
+  }
   return (
     <Table.Tr
       key={index}
