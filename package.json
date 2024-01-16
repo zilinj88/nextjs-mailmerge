@@ -23,7 +23,9 @@
     "@mantine/notifications": "^7.4.1",
     "@tabler/icons-react": "^2.44.0",
     "@uiw/react-md-editor": "^4.0.1",
-    "markdown-it": "^14.0.0",
+    "lodash": "^4.17.21",
+    "marked": "^11.1.1",
+    "mimetext": "^3.0.16",
     "next": "14.0.4",
     "nuqs": "^1.14.1",
     "react": "^18",
@@ -38,7 +40,7 @@
     "@types/gapi": "^0.0.47",
     "@types/gapi.client.gmail-v1": "^0.0.4",
     "@types/google.accounts": "^0.0.14",
-    "@types/markdown-it": "^13.0.7",
+    "@types/lodash": "^4.14.202",
     "@types/node": "^20",
     "@types/papaparse": "^5.3.14",
     "@types/react": "^18",
@@ -70,7 +72,8 @@
   },
   "pnpm": {
     "patchedDependencies": {
-      "@types/gapi@0.0.47": "patches/@types__gapi@0.0.47.patch"
+      "@types/gapi@0.0.47": "patches/@types__gapi@0.0.47.patch",
+      "mimetext@3.0.16": "patches/mimetext@3.0.16.patch"
     }
   }
 }

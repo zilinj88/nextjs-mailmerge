@@ -9,6 +9,10 @@ interface UserRowCompProps {
   index: number
 }
 
+const selectRow = (index: number) => {
+  useAppDataStore.setState({ selectedIndex: index })
+}
+
 const UserRowComp: React.FC<UserRowCompProps> = ({ index }) => {
   const data = useAppDataStore((state) => state.data)
   const isSelected = useAppDataStore((state) => state.selectedIndex === index)
@@ -20,10 +24,10 @@ const UserRowComp: React.FC<UserRowCompProps> = ({ index }) => {
     <Table.Tr
       key={index}
       bg={isSelected ? theme.colors.blue[0] : undefined}
-      onClick={() => useAppDataStore.setState({ selectedIndex: index })}
+      onClick={() => selectRow(index)}
     >
       <Table.Td>
-        <Radio aria-label='Select user' checked={isSelected} />
+        <Radio aria-label='Select user' checked={isSelected} onChange={() => selectRow(index)} />
       </Table.Td>
       {data.columns.map((col, index) => (
         <Table.Td key={index}>{row[col] ?? ''}</Table.Td>
