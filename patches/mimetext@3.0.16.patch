@@ -1,0 +1,39 @@
+diff --git a/package.json b/package.json
+index 77299cdf67cbd98c9068834492d83787bcc14beb..36f44905c8208f9348c07782e8f800c72e30df90 100644
+--- a/package.json
++++ b/package.json
+@@ -8,24 +8,29 @@
+       "node": {
+         "import": "./dist/node/mimetext.es.js",
+         "require": "./dist/node/mimetext.cjs",
+-        "default": "./dist/node/mimetext.cjs"
++        "default": "./dist/node/mimetext.cjs",
++        "types": "./types/index.d.ts"
+       },
+       "import": "./dist/browser/mimetext.es.js",
+       "require": "./dist/browser/mimetext.cjs",
+-      "default": "./dist/browser/mimetext.cjs"
++      "default": "./dist/browser/mimetext.cjs",
++      "types": "./types/index.d.ts"
+     },
+     "./browser": {
+       "import": "./dist/browser/mimetext.es.js",
+       "require": "./dist/browser/mimetext.cjs",
+-      "default": "./dist/browser/mimetext.cjs"
++      "default": "./dist/browser/mimetext.cjs",
++      "types": "./types/index.d.ts"
+     },
+     "./node": {
+       "import": "./dist/node/mimetext.es.js",
+       "require": "./dist/node/mimetext.cjs",
+-      "default": "./dist/node/mimetext.cjs"
++      "default": "./dist/node/mimetext.cjs",
++      "types": "./types/index.d.ts"
+     },
+     "./gas": {
+-      "default": "./dist/gas/mimetext.js"
++      "default": "./dist/gas/mimetext.js",
++      "types": "./types/index.d.ts"
+     }
+   },
+   "main": "dist/node/mimetext.cjs",
