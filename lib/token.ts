@@ -9,8 +9,7 @@ export const requestGoogleAccessToken = (): Promise<google.accounts.oauth2.Token
   return new Promise((resolve, reject) => {
     const tokenClient = google.accounts.oauth2.initTokenClient({
       client_id: zenv.NEXT_PUBLIC_CLIENT_ID,
-      scope:
-        'https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.readonly',
+      scope: 'https://www.googleapis.com/auth/gmail.compose',
       callback: (response) => {
         // When valid access token is returned
         if (response.access_token) {
