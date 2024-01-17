@@ -1,6 +1,6 @@
 import { marked } from 'marked'
 import { createMimeMessage } from 'mimetext'
-import { type UserRow, useAppDataStore, useTemplateStore } from '~/lib/hooks'
+import { type UserRow, useTemplateStore } from '~/lib/hooks'
 import { MarkdownTextRenderer } from '~/lib/markdown-text-renderer'
 import { requestGoogleAccessToken } from '~/lib/token'
 import { renderTemplate } from '~/lib/util'
@@ -28,7 +28,24 @@ const mkEmail = ({ to, subject, html, text }: EmailParams) => {
   return message.asEncoded()
 }
 
-const _sendEmail = async ({ to, subject, html, text }: EmailParams): Promise<void> => {
+export interface SendEmailParams {
+  user: UserRow
+  to: string
+  subjectTemplate: string
+  mdTemplate: string
+}
+
+const textRenderer = new MarkdownTextRenderer()
+export const sendEmailAsync = async ({
+  user,
+  to,
+  subjectTemplate,
+  mdTemplate,
+}: SendEmailParams): Promise<void> => {
+  const subject = renderTemplate(subjectTemplate, user)
+  const md = renderTemplate(mdTemplate, user)
+  const html = marked(md, { async: false }) as string
+  const text = marked(md, { renderer: textRenderer, async: false }) as string
   const raw = mkEmail({ to, subject, html, text })
   await gapi.client.gmail.users.messages.send({
     userId: 'me',
@@ -41,16 +58,11 @@ interface SendEmailParam {
   to: string
 }
 
-const textRenderer = new MarkdownTextRenderer()
 export const sendEmails = async (params: SendEmailParam[]): Promise<void> => {
   const { mdTemplate, subjectTemplate } = useTemplateStore.getState()
   return Promise.all(
     params.map(({ user, to }) => {
-      const subject = renderTemplate(subjectTemplate, user)
-      const md = renderTemplate(mdTemplate, user)
-      const html = marked(md, { async: false }) as string
-      const text = marked(md, { renderer: textRenderer, async: false }) as string
-      return _sendEmail({ to, subject, html, text })
+      return sendEmailAsync({ user, to, subjectTemplate, mdTemplate })
     })
   ).then(() => {})
 }
@@ -65,19 +77,7 @@ export const getMyEmail = async (): Promise<string> => {
 
 export const sendMeFn = async (row: UserRow): Promise<void> => {
   await requestGoogleAccessToken()
-  const { result } = await gapi.client.gmail.users.getProfile({ userId: 'me' })
-  if (!result.emailAddress) {
-    throw new Error('')
-  }
-  sendEmails([{ user: row, to: result.emailAddress }])
-}
-
-export const sendBatchFn = async (): Promise<void> => {
-  const { data } = useAppDataStore.getState()
-  if (!data) {
-    return
-  }
-  const params = data.rows.map((user) => ({ user, to: user.email }))
-  await requestGoogleAccessToken()
-  await sendEmails(params)
+  const to = await getMyEmail()
+  const { mdTemplate, subjectTemplate } = useTemplateStore.getState()
+  await sendEmailAsync({ user: row, to, subjectTemplate, mdTemplate })
 }

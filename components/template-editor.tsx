@@ -5,8 +5,15 @@ import MDEditor from '@uiw/react-md-editor'
 import React, { useMemo, useState } from 'react'
 import { useMutation } from 'react-query'
 import { UsersTable } from '~/components/users-table'
-import { sendBatchFn, sendMeFn } from '~/lib/email'
-import { type UserRow, useAppDataStore, useTemplateStore, useTemplateStoreSafe } from '~/lib/hooks'
+import { sendMeFn } from '~/lib/email'
+import {
+  type UserRow,
+  useAppDataStore,
+  useSendBatchState,
+  useTemplateStore,
+  useTemplateStoreSafe,
+} from '~/lib/hooks'
+import { sendBatch } from '~/lib/send-batch'
 import { renderTemplate } from '~/lib/util'
 
 const EditorComp: React.FC = () => {
@@ -68,8 +75,9 @@ export const TemplateEditor: React.FC = () => {
   const rows = useAppDataStore((state) => state.data?.rows)
   const selectedIndex = useAppDataStore((state) => state.selectedIndex)
   const currentUser = typeof selectedIndex === 'number' ? rows?.at(selectedIndex) : undefined
+  const sendBatchStatus = useSendBatchState((state) => state.status)
   const sendMeMutation = useMutation(sendMeFn)
-  const sendBatchMutation = useMutation(sendBatchFn)
+  const sendBatchMutation = useMutation(sendBatch)
 
   // Hack: Make sure the Preview & Markdown component read correct from TemplateStore
   const isLoaded = useTemplateStoreSafe((state) => state.isLoaded)
@@ -85,6 +93,8 @@ export const TemplateEditor: React.FC = () => {
   }
 
   const isDataAvailable = rows && rows.length > 0
+  const isSendingMails =
+    sendMeMutation.isLoading || sendBatchStatus === 'sending' || sendBatchMutation.isLoading
   return (
     <Stack p='md' gap={'xl'}>
       <SimpleGrid cols={{ base: 1, md: 2 }} verticalSpacing='xl' spacing={'xl'}>
@@ -111,14 +121,14 @@ export const TemplateEditor: React.FC = () => {
               <Button
                 rightSection={sendMeMutation.isSuccess ? '✓' : undefined}
                 disabled={!currentUser}
-                loading={sendMeMutation.isLoading}
+                loading={isSendingMails}
                 onClick={onClickSendMe}
               >
                 Send me a sample
               </Button>
               <Button
-                rightSection={sendBatchMutation.isSuccess ? '✓' : undefined}
-                loading={sendBatchMutation.isLoading}
+                rightSection={sendBatchStatus === 'finished' ? '✓' : undefined}
+                loading={isSendingMails}
                 onClick={() => sendBatchMutation.mutateAsync()}
               >
                 Send to everyone
