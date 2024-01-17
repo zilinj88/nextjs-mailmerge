@@ -20,7 +20,6 @@ const useGetMyEmailQuery = () => {
       }
       return getMyEmail()
     },
-    initialData: '',
     cacheTime: Infinity,
     staleTime: Infinity,
   })
