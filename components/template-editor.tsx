@@ -1,6 +1,18 @@
 'use client'
 
-import { Box, Button, Group, Input, SimpleGrid, Stack, Text, TextInput, Title } from '@mantine/core'
+import {
+  Box,
+  Button,
+  Group,
+  Input,
+  Pill,
+  SimpleGrid,
+  Stack,
+  Text,
+  TextInput,
+  Title,
+} from '@mantine/core'
+import { Dropzone } from '@mantine/dropzone'
 import MDEditor from '@uiw/react-md-editor'
 import React, { useMemo, useState } from 'react'
 import { useMutation } from 'react-query'
@@ -15,6 +27,7 @@ import {
 } from '~/lib/hooks'
 import { sendBatch } from '~/lib/send-batch'
 import { renderTemplate } from '~/lib/util'
+import { zenv } from '~/lib/zenv'
 
 const EditorComp: React.FC = () => {
   const subjectTemplate = useTemplateStore((state) => state.subjectTemplate)
@@ -29,7 +42,7 @@ const EditorComp: React.FC = () => {
           useTemplateStore.setState({ subjectTemplate: event.currentTarget.value })
         }
       />
-      <Stack gap='2'>
+      <Stack gap={2}>
         <Input.Label>Mail body template</Input.Label>
         <Box data-color-mode='light'>
           <MDEditor
@@ -41,6 +54,10 @@ const EditorComp: React.FC = () => {
             preview='edit'
           />
         </Box>
+      </Stack>
+      <Stack gap={'xs'}>
+        <Input.Label>Attachments</Input.Label>
+        <AttachmentsComp />
       </Stack>
     </Stack>
   )
@@ -68,6 +85,47 @@ const PreviewComp: React.FC<{
         <MDEditor.Markdown source={renderedBody} />
       </Stack>
     </Stack>
+  )
+}
+
+const AttachmentsComp: React.FC = () => {
+  const attachments = useTemplateStore((state) => state.attachments)
+  const remainingCount = Math.max(zenv.NEXT_PUBLIC_ATTACHMENT_MAX_FILES - attachments.length, 0)
+  return (
+    <>
+      {attachments.length > 0 && (
+        <Group wrap='wrap' gap='xs'>
+          {attachments.map((file, index) => (
+            <Pill
+              key={`${file.name}-${index}`}
+              withRemoveButton
+              onRemove={() => {
+                useTemplateStore.getState().removeAttachment(file)
+              }}
+            >
+              {file.name}
+            </Pill>
+          ))}
+        </Group>
+      )}
+      <Dropzone
+        onDrop={(files) => {
+          useTemplateStore.getState().addAttachments(files)
+        }}
+        maxFiles={remainingCount}
+        maxSize={zenv.NEXT_PUBLIC_ATTACHMENT_MAX_SIZE_MB * 1024 * 1024}
+        disabled={remainingCount === 0}
+        style={remainingCount > 0 ? {} : { cursor: 'not-allowed' }}
+      >
+        <Stack align='center' mih={100} justify='center'>
+          <Text size='xl' inline c='dimmed'>
+            {remainingCount > 0
+              ? `Drop attachments (Max: ${remainingCount})`
+              : 'Maximum count reached'}
+          </Text>
+        </Stack>
+      </Dropzone>
+    </>
   )
 }
 
