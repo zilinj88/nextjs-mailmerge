@@ -15,9 +15,13 @@ import { type SendEmailParams, sendEmailAsync } from './email'
 
 type SendEmailStatus = 'success' | 'error'
 
+// Gmail API has a limit of 2.5 messages per second:L
+// https://developers.google.com/gmail/api/reference/quota
+const delayBetweenSendMs = 500
+
 const retryConfig: RetryConfig = {
   count: 2,
-  delay: 500,
+  delay: delayBetweenSendMs,
 }
 
 // Retry send email observable, this never emits error
@@ -68,8 +72,7 @@ export const mkSendBatchObservable = ({
           }
           return { succeed, failed }
         }),
-        // Delay 500ms before processing next user
-        delay(500)
+        delay(delayBetweenSendMs)
       )
     )
   )
