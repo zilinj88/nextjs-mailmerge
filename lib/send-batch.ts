@@ -39,6 +39,11 @@ export interface SendBatchProgress {
   failed: number
 }
 
+/*
+  Use rxjs to
+  1. Implement complicated concurrency easily
+  2. Make cancellation easy
+*/
 export const mkSendBatchObservable = ({
   users,
   subjectTemplate,
@@ -47,6 +52,7 @@ export const mkSendBatchObservable = ({
   let succeed = 0
   let failed = 0
   return from(users).pipe(
+    // concat-map every user to send email observable, and then delay 500ms
     concatMap((user) =>
       mkSendEmailObservable({
         user,
@@ -62,6 +68,7 @@ export const mkSendBatchObservable = ({
           }
           return { succeed, failed }
         }),
+        // Delay 500ms before processing next user
         delay(500)
       )
     )
