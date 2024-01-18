@@ -32,7 +32,7 @@ export interface SendEmailParams {
   user: UserRow
   to: string
   subjectTemplate: string
-  mdTemplate: string
+  bodyTemplate: string
 }
 
 const textRenderer = new MarkdownTextRenderer()
@@ -40,12 +40,12 @@ export const sendEmailAsync = async ({
   user,
   to,
   subjectTemplate,
-  mdTemplate,
+  bodyTemplate,
 }: SendEmailParams): Promise<void> => {
   const subject = renderTemplate(subjectTemplate, user)
-  const md = renderTemplate(mdTemplate, user)
-  const html = marked(md, { async: false }) as string
-  const text = marked(md, { renderer: textRenderer, async: false }) as string
+  const body = renderTemplate(bodyTemplate, user)
+  const html = marked(body, { async: false }) as string
+  const text = marked(body, { renderer: textRenderer, async: false }) as string
   const raw = mkEmail({ to, subject, html, text })
   await gapi.client.gmail.users.messages.send({
     userId: 'me',
@@ -59,10 +59,10 @@ interface SendEmailParam {
 }
 
 export const sendEmails = async (params: SendEmailParam[]): Promise<void> => {
-  const { mdTemplate, subjectTemplate } = useTemplateStore.getState()
+  const { bodyTemplate, subjectTemplate } = useTemplateStore.getState()
   return Promise.all(
     params.map(({ user, to }) => {
-      return sendEmailAsync({ user, to, subjectTemplate, mdTemplate })
+      return sendEmailAsync({ user, to, subjectTemplate, bodyTemplate })
     })
   ).then(() => {})
 }
@@ -78,6 +78,6 @@ export const getMyEmail = async (): Promise<string> => {
 export const sendMeFn = async (row: UserRow): Promise<void> => {
   await requestGoogleAccessToken()
   const to = await getMyEmail()
-  const { mdTemplate, subjectTemplate } = useTemplateStore.getState()
-  await sendEmailAsync({ user: row, to, subjectTemplate, mdTemplate })
+  const { bodyTemplate, subjectTemplate } = useTemplateStore.getState()
+  await sendEmailAsync({ user: row, to, subjectTemplate, bodyTemplate })
 }
