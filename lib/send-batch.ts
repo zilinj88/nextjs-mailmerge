@@ -35,7 +35,7 @@ const mkSendEmailObservable = (params: SendEmailParams): Observable<SendEmailSta
 interface MkSlowSendBatchObservableInput {
   users: UserRow[]
   subjectTemplate: string
-  mdTemplate: string
+  bodyTemplate: string
 }
 
 export interface SendBatchProgress {
@@ -51,7 +51,7 @@ export interface SendBatchProgress {
 export const mkSendBatchObservable = ({
   users,
   subjectTemplate,
-  mdTemplate,
+  bodyTemplate,
 }: MkSlowSendBatchObservableInput): Observable<SendBatchProgress> => {
   let succeed = 0
   let failed = 0
@@ -62,7 +62,7 @@ export const mkSendBatchObservable = ({
         user,
         to: user.email,
         subjectTemplate,
-        mdTemplate,
+        bodyTemplate,
       }).pipe(
         map((result) => {
           if (result === 'success') {
@@ -85,9 +85,9 @@ export const sendBatch = async (): Promise<void> => {
   }
 
   await requestGoogleAccessToken()
-  const { subjectTemplate, mdTemplate } = useTemplateStore.getState()
+  const { subjectTemplate, bodyTemplate } = useTemplateStore.getState()
   // Initialize sending
-  const subscription = mkSendBatchObservable({ users, subjectTemplate, mdTemplate }).subscribe({
+  const subscription = mkSendBatchObservable({ users, subjectTemplate, bodyTemplate }).subscribe({
     next: (progress) => {
       useSendBatchState.getState().update(progress)
     },

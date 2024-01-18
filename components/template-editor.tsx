@@ -18,8 +18,8 @@ import { renderTemplate } from '~/lib/util'
 
 const EditorComp: React.FC = () => {
   const subjectTemplate = useTemplateStore((state) => state.subjectTemplate)
-  const mdTemplate = useTemplateStore((state) => state.mdTemplate)
-  const [mdValue, setMdValue] = useState(mdTemplate)
+  const bodyTemplate = useTemplateStore((state) => state.bodyTemplate)
+  const [mdValue, setMdValue] = useState(bodyTemplate)
   return (
     <Stack gap='xl'>
       <TextInput
@@ -36,7 +36,7 @@ const EditorComp: React.FC = () => {
             value={mdValue}
             onChange={(value) => {
               setMdValue(value ?? '')
-              useTemplateStore.setState({ mdTemplate: value ?? '' })
+              useTemplateStore.setState({ bodyTemplate: value ?? '' })
             }}
             preview='edit'
           />
@@ -50,13 +50,13 @@ const PreviewComp: React.FC<{
   data?: UserRow
 }> = ({ data }) => {
   const subjectTemplate = useTemplateStore((state) => state.subjectTemplate)
-  const mdTemplate = useTemplateStore((state) => state.mdTemplate)
+  const bodyTemplate = useTemplateStore((state) => state.bodyTemplate)
 
   const renderedSubject = useMemo(
     () => renderTemplate(subjectTemplate, data ?? {}),
     [data, subjectTemplate]
   )
-  const renderedBody = useMemo(() => renderTemplate(mdTemplate, data ?? {}), [data, mdTemplate])
+  const renderedBody = useMemo(() => renderTemplate(bodyTemplate, data ?? {}), [data, bodyTemplate])
   return (
     <Stack gap='xl'>
       <Stack gap='xs'>
