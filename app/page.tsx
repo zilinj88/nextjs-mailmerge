@@ -4,6 +4,7 @@ import { Button, Container, Group, Stack, Tabs, Text, Title } from '@mantine/cor
 import { type JSX } from 'react'
 import { useMutation, useQuery } from 'react-query'
 import { CSVData } from '~/components/csv-data'
+import { SendBatchStatusModal } from '~/components/send-batch-status-modal'
 import { TemplateEditor } from '~/components/template-editor'
 import { getMyEmail } from '~/lib/email'
 import { useGoogleService } from '~/lib/hooks'
@@ -87,6 +88,7 @@ const Home = (): JSX.Element => {
           </Tabs.Panel>
         </Tabs>
       </Stack>
+      <SendBatchStatusModal/>
     </Container>
   )
 }
