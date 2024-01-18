@@ -1,21 +1,29 @@
-import { chunk } from 'lodash'
-import { type Observable, catchError, concatMap, delay, from, map, of, retry, zip } from 'rxjs'
+import {
+  type Observable,
+  type RetryConfig,
+  catchError,
+  concatMap,
+  delay,
+  from,
+  map,
+  of,
+  retry,
+} from 'rxjs'
 import { type UserRow, useAppDataStore, useSendBatchState, useTemplateStore } from '~/lib/hooks'
 import { requestGoogleAccessToken } from '~/lib/token'
 import { type SendEmailParams, sendEmailAsync } from './email'
 
-const quotaLimit = 2
-const sendInterval = 1000
-
 type SendEmailStatus = 'success' | 'error'
+
+const retryConfig: RetryConfig = {
+  count: 2,
+  delay: 500,
+}
 
 // Retry send email observable, this never emits error
 const mkSendEmailObservable = (params: SendEmailParams): Observable<SendEmailStatus> =>
   from(sendEmailAsync(params)).pipe(
-    retry({
-      count: 2,
-      delay: 1000,
-    }),
+    retry(retryConfig),
     map(() => 'success' as const),
     catchError(() => of('error' as const))
   )
@@ -38,23 +46,23 @@ export const mkSendBatchObservable = ({
 }: MkSlowSendBatchObservableInput): Observable<SendBatchProgress> => {
   let succeed = 0
   let failed = 0
-  return from(chunk(users, quotaLimit)).pipe(
-    // map every chunk to other delayed observable
-    concatMap((val) =>
-      // use zip to batch send
-      zip(
-        val.map((user) =>
-          mkSendEmailObservable({ user, to: user.email, subjectTemplate, mdTemplate })
-        )
-      ).pipe(
-        map((results) => {
-          // accumulate results
-          succeed += results.filter((result) => result === 'success').length
-          failed += results.filter((result) => result === 'error').length
+  return from(users).pipe(
+    concatMap((user) =>
+      mkSendEmailObservable({
+        user,
+        to: user.email,
+        subjectTemplate,
+        mdTemplate,
+      }).pipe(
+        map((result) => {
+          if (result === 'success') {
+            succeed = succeed + 1
+          } else {
+            failed = failed + 1
+          }
           return { succeed, failed }
         }),
-        // Delay 1000 seconds before next send
-        delay(sendInterval)
+        delay(500)
       )
     )
   )
