@@ -1,4 +1,5 @@
 import { pick } from 'lodash'
+import { useMemo } from 'react'
 import type { Subscription } from 'rxjs'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
@@ -77,6 +78,14 @@ export const useTemplateStore = create<UseTemplateStore>()(
 
 export const useTemplateStoreSafe = <T>(selector: (state: UseTemplateStore) => T): T | undefined =>
   useStore(useTemplateStore, selector)
+
+export const useAttachmentsSize = (): number => {
+  const attachments = useTemplateStore((state) => state.attachments)
+  return useMemo(
+    () => attachments.reduce((totalSize, file) => totalSize + file.size, 0),
+    [attachments]
+  )
+}
 
 type SendBatchStatus = 'idle' | 'sending' | 'finished' | 'cancelled'
 export interface UseSendBatchStateStore extends SendBatchProgress {

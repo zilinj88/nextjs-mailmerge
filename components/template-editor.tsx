@@ -18,21 +18,23 @@ import React, { useMemo, useState } from 'react'
 import { useMutation } from 'react-query'
 import { UsersTable } from '~/components/users-table'
 import { sendMeFn } from '~/lib/email'
+import { handleError } from '~/lib/handle-error'
 import {
   type UserRow,
   useAppDataStore,
+  useAttachmentsSize,
   useSendBatchState,
   useTemplateStore,
   useTemplateStoreSafe,
 } from '~/lib/hooks'
 import { sendBatch } from '~/lib/send-batch'
-import { renderTemplate } from '~/lib/util'
-import { zenv } from '~/lib/zenv'
+import { readableFileSize, renderTemplate } from '~/lib/util'
 
 const EditorComp: React.FC = () => {
   const subjectTemplate = useTemplateStore((state) => state.subjectTemplate)
   const bodyTemplate = useTemplateStore((state) => state.bodyTemplate)
   const [mdValue, setMdValue] = useState(bodyTemplate)
+  const attachmentsSize = useAttachmentsSize()
   return (
     <Stack gap='xl'>
       <TextInput
@@ -56,7 +58,7 @@ const EditorComp: React.FC = () => {
         </Box>
       </Stack>
       <Stack gap={'xs'}>
-        <Input.Label>Attachments</Input.Label>
+        <Input.Label>Attachments ({readableFileSize(attachmentsSize)})</Input.Label>
         <AttachmentsComp />
       </Stack>
     </Stack>
@@ -88,9 +90,27 @@ const PreviewComp: React.FC<{
   )
 }
 
+// 25MB
+// See https://support.google.com/mail/answer/6584#zippy=%2Cattachment-size-limit
+const maxAttachmentSize = 25 * 1024 * 1024
+
 const AttachmentsComp: React.FC = () => {
   const attachments = useTemplateStore((state) => state.attachments)
-  const remainingCount = Math.max(zenv.NEXT_PUBLIC_ATTACHMENT_MAX_FILES - attachments.length, 0)
+  const attachmentsSize = useAttachmentsSize()
+  const remainingSize = maxAttachmentSize - attachmentsSize
+
+  const onDropFiles = React.useCallback(
+    (files: File[]) => {
+      const addedSize = files.reduce((size, file) => size + file.size, 0)
+      if (addedSize + attachmentsSize > maxAttachmentSize) {
+        handleError(new Error('Maximum attachments size reached'))
+        return
+      }
+      useTemplateStore.getState().addAttachments(files)
+    },
+    [attachmentsSize]
+  )
+
   return (
     <>
       {attachments.length > 0 && (
@@ -103,25 +123,22 @@ const AttachmentsComp: React.FC = () => {
                 useTemplateStore.getState().removeAttachment(file)
               }}
             >
-              {file.name}
+              {`${file.name} - ${readableFileSize(file.size)}`}
             </Pill>
           ))}
         </Group>
       )}
       <Dropzone
-        onDrop={(files) => {
-          useTemplateStore.getState().addAttachments(files)
-        }}
-        maxFiles={remainingCount}
-        maxSize={zenv.NEXT_PUBLIC_ATTACHMENT_MAX_SIZE_MB * 1024 * 1024}
-        disabled={remainingCount === 0}
-        style={remainingCount > 0 ? {} : { cursor: 'not-allowed' }}
+        onDrop={onDropFiles}
+        maxSize={remainingSize}
+        disabled={remainingSize <= 0}
+        style={remainingSize > 0 ? {} : { cursor: 'not-allowed' }}
       >
         <Stack align='center' mih={100} justify='center'>
           <Text size='xl' inline c='dimmed'>
-            {remainingCount > 0
-              ? `Drop attachments (Max: ${remainingCount})`
-              : 'Maximum count reached'}
+            {remainingSize > 0
+              ? `Drop attachments (Remaining: ${readableFileSize(remainingSize)})`
+              : 'Maximum attachments size reached'}
           </Text>
         </Stack>
       </Dropzone>
