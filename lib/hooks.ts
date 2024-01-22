@@ -1,3 +1,5 @@
+import { pick } from 'lodash'
+import { useMemo } from 'react'
 import type { Subscription } from 'rxjs'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
@@ -47,24 +49,43 @@ export const useAppDataStore = create<UseAppDataStore>((set) => ({
 export interface UseTemplateStore {
   subjectTemplate: string
   bodyTemplate: string
+  attachments: File[]
   // Hack: To check if this store is loaded from local storage
   isLoaded: boolean
+  addAttachments: (files: File[]) => void
+  removeAttachment: (file: File) => void
 }
 export const useTemplateStore = create<UseTemplateStore>()(
   persist(
-    () => ({
+    (set, get) => ({
       subjectTemplate: '',
       bodyTemplate: '',
+      attachments: [] as File[],
       isLoaded: true as boolean,
+      addAttachments: (files: File[]) => {
+        set({ attachments: [...get().attachments, ...files] })
+      },
+      removeAttachment: (file: File) => {
+        set({ attachments: get().attachments.filter((f) => f !== file) })
+      },
     }),
     {
       name: 'app-data-template-storage',
+      partialize: (state) => pick(state, ['subjectTemplate', 'bodyTemplate']),
     }
   )
 )
 
 export const useTemplateStoreSafe = <T>(selector: (state: UseTemplateStore) => T): T | undefined =>
   useStore(useTemplateStore, selector)
+
+export const useAttachmentsSize = (): number => {
+  const attachments = useTemplateStore((state) => state.attachments)
+  return useMemo(
+    () => attachments.reduce((totalSize, file) => totalSize + file.size, 0),
+    [attachments]
+  )
+}
 
 type SendBatchStatus = 'idle' | 'sending' | 'finished' | 'cancelled'
 export interface UseSendBatchStateStore extends SendBatchProgress {

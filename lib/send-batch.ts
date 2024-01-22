@@ -10,6 +10,7 @@ import {
   retry,
 } from 'rxjs'
 import { type UserRow, useAppDataStore, useSendBatchState, useTemplateStore } from '~/lib/hooks'
+import { mkBase64Encoded } from '~/lib/mk-base64-encoded'
 import { requestGoogleAccessToken } from '~/lib/token'
 import { type SendEmailParams, sendEmailAsync } from './email'
 
@@ -32,10 +33,9 @@ const mkSendEmailObservable = (params: SendEmailParams): Observable<SendEmailSta
     catchError(() => of('error' as const))
   )
 
-interface MkSlowSendBatchObservableInput {
+interface MkSlowSendBatchObservableInput
+  extends Pick<SendEmailParams, 'subjectTemplate' | 'bodyTemplate' | 'attachments'> {
   users: UserRow[]
-  subjectTemplate: string
-  bodyTemplate: string
 }
 
 export interface SendBatchProgress {
@@ -52,6 +52,7 @@ export const mkSendBatchObservable = ({
   users,
   subjectTemplate,
   bodyTemplate,
+  attachments,
 }: MkSlowSendBatchObservableInput): Observable<SendBatchProgress> => {
   let succeed = 0
   let failed = 0
@@ -63,6 +64,7 @@ export const mkSendBatchObservable = ({
         to: user.email,
         subjectTemplate,
         bodyTemplate,
+        attachments,
       }).pipe(
         map((result) => {
           if (result === 'success') {
@@ -85,9 +87,14 @@ export const sendBatch = async (): Promise<void> => {
   }
 
   await requestGoogleAccessToken()
-  const { subjectTemplate, bodyTemplate } = useTemplateStore.getState()
+  const { subjectTemplate, bodyTemplate, attachments } = useTemplateStore.getState()
   // Initialize sending
-  const subscription = mkSendBatchObservable({ users, subjectTemplate, bodyTemplate }).subscribe({
+  const subscription = mkSendBatchObservable({
+    users,
+    subjectTemplate,
+    bodyTemplate,
+    attachments: await Promise.all(attachments.map((file) => mkBase64Encoded(file))),
+  }).subscribe({
     next: (progress) => {
       useSendBatchState.getState().update(progress)
     },

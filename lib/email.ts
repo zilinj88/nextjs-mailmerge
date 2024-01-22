@@ -1,7 +1,8 @@
 import { marked } from 'marked'
-import { createMimeMessage } from 'mimetext'
+import { type AttachmentOptions, createMimeMessage } from 'mimetext'
 import { type UserRow, useTemplateStore } from '~/lib/hooks'
 import { MarkdownTextRenderer } from '~/lib/markdown-text-renderer'
+import { mkBase64Encoded } from '~/lib/mk-base64-encoded'
 import { requestGoogleAccessToken } from '~/lib/token'
 import { renderTemplate } from '~/lib/util'
 
@@ -10,9 +11,10 @@ interface EmailParams {
   subject: string
   html: string
   text: string
+  attachments: AttachmentOptions[]
 }
 
-const mkEmail = ({ to, subject, html, text }: EmailParams) => {
+const mkEmail = ({ to, subject, html, text, attachments }: EmailParams) => {
   const message = createMimeMessage()
   message.setSender('me')
   message.setTo(to)
@@ -25,6 +27,7 @@ const mkEmail = ({ to, subject, html, text }: EmailParams) => {
     contentType: 'text/plain',
     data: text,
   })
+  attachments.forEach((file) => message.addAttachment(file))
   return message.asEncoded()
 }
 
@@ -33,6 +36,7 @@ export interface SendEmailParams {
   to: string
   subjectTemplate: string
   bodyTemplate: string
+  attachments: AttachmentOptions[]
 }
 
 const textRenderer = new MarkdownTextRenderer()
@@ -41,30 +45,17 @@ export const sendEmailAsync = async ({
   to,
   subjectTemplate,
   bodyTemplate,
+  attachments,
 }: SendEmailParams): Promise<void> => {
   const subject = renderTemplate(subjectTemplate, user)
   const body = renderTemplate(bodyTemplate, user)
   const html = marked(body, { async: false }) as string
   const text = marked(body, { renderer: textRenderer, async: false }) as string
-  const raw = mkEmail({ to, subject, html, text })
+  const raw = mkEmail({ to, subject, html, text, attachments })
   await gapi.client.gmail.users.messages.send({
     userId: 'me',
     resource: { raw },
   })
-}
-
-interface SendEmailParam {
-  user: UserRow
-  to: string
-}
-
-export const sendEmails = async (params: SendEmailParam[]): Promise<void> => {
-  const { bodyTemplate, subjectTemplate } = useTemplateStore.getState()
-  return Promise.all(
-    params.map(({ user, to }) => {
-      return sendEmailAsync({ user, to, subjectTemplate, bodyTemplate })
-    })
-  ).then(() => {})
 }
 
 export const getMyEmail = async (): Promise<string> => {
@@ -78,6 +69,12 @@ export const getMyEmail = async (): Promise<string> => {
 export const sendMeFn = async (row: UserRow): Promise<void> => {
   await requestGoogleAccessToken()
   const to = await getMyEmail()
-  const { bodyTemplate, subjectTemplate } = useTemplateStore.getState()
-  await sendEmailAsync({ user: row, to, subjectTemplate, bodyTemplate })
+  const { bodyTemplate, subjectTemplate, attachments } = useTemplateStore.getState()
+  await sendEmailAsync({
+    user: row,
+    to,
+    subjectTemplate,
+    bodyTemplate,
+    attachments: await Promise.all(attachments.map((file) => mkBase64Encoded(file))),
+  })
 }

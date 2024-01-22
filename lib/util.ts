@@ -1,3 +1,4 @@
+import { round } from 'lodash'
 import { useEffect, useState } from 'react'
 
 export const atOrThrow = <T>(array: readonly T[], key: number): T => {
@@ -25,4 +26,24 @@ export const useStore = <T, F>(
   }, [result])
 
   return data
+}
+
+export const readableFileSize = (fileSize: number): string => {
+  const DEFAULT_SIZE = 0
+  if (!fileSize) {
+    return `${DEFAULT_SIZE} KB`
+  }
+  const format = (number: number) => {
+    return round(number, 2)
+  }
+
+  const sizeInKb = fileSize / 1024
+
+  if (sizeInKb > 1024) {
+    return `${format(sizeInKb / 1024)} MB`
+  } else if (sizeInKb > 10) {
+    return `${format(sizeInKb)} KB`
+  } else {
+    return `${format(fileSize)} Bytes`
+  }
 }

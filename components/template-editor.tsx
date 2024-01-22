@@ -1,6 +1,18 @@
 'use client'
 
-import { Box, Button, Group, Input, SimpleGrid, Stack, Text, TextInput, Title } from '@mantine/core'
+import {
+  Box,
+  Button,
+  Group,
+  Input,
+  Pill,
+  SimpleGrid,
+  Stack,
+  Text,
+  TextInput,
+  Title,
+} from '@mantine/core'
+import { Dropzone } from '@mantine/dropzone'
 import MDEditor from '@uiw/react-md-editor'
 import React, { useMemo, useState } from 'react'
 import { useMutation } from 'react-query'
@@ -9,17 +21,19 @@ import { sendMeFn } from '~/lib/email'
 import {
   type UserRow,
   useAppDataStore,
+  useAttachmentsSize,
   useSendBatchState,
   useTemplateStore,
   useTemplateStoreSafe,
 } from '~/lib/hooks'
 import { sendBatch } from '~/lib/send-batch'
-import { renderTemplate } from '~/lib/util'
+import { readableFileSize, renderTemplate } from '~/lib/util'
 
 const EditorComp: React.FC = () => {
   const subjectTemplate = useTemplateStore((state) => state.subjectTemplate)
   const bodyTemplate = useTemplateStore((state) => state.bodyTemplate)
   const [mdValue, setMdValue] = useState(bodyTemplate)
+  const attachmentsSize = useAttachmentsSize()
   return (
     <Stack gap='xl'>
       <TextInput
@@ -29,7 +43,7 @@ const EditorComp: React.FC = () => {
           useTemplateStore.setState({ subjectTemplate: event.currentTarget.value })
         }
       />
-      <Stack gap='2'>
+      <Stack gap={2}>
         <Input.Label>Mail body template</Input.Label>
         <Box data-color-mode='light'>
           <MDEditor
@@ -41,6 +55,10 @@ const EditorComp: React.FC = () => {
             preview='edit'
           />
         </Box>
+      </Stack>
+      <Stack gap={'xs'}>
+        <Input.Label>Attachments ({readableFileSize(attachmentsSize)})</Input.Label>
+        <AttachmentsComp />
       </Stack>
     </Stack>
   )
@@ -68,6 +86,69 @@ const PreviewComp: React.FC<{
         <MDEditor.Markdown source={renderedBody} />
       </Stack>
     </Stack>
+  )
+}
+
+// 25MB
+// See https://support.google.com/mail/answer/6584#zippy=%2Cattachment-size-limit
+const maxAttachmentSize = 25 * 1024 * 1024
+
+const AttachmentsComp: React.FC = () => {
+  const attachments = useTemplateStore((state) => state.attachments)
+  const attachmentsSize = useAttachmentsSize()
+  const remainingSize = maxAttachmentSize - attachmentsSize
+  const [dropErrorMessage, setDropErrorMessage] = useState<string>()
+
+  const onDropFiles = React.useCallback(
+    (files: File[]) => {
+      const addedSize = files.reduce((size, file) => size + file.size, 0)
+      if (addedSize + attachmentsSize > maxAttachmentSize) {
+        setDropErrorMessage(`Exceeded maximum remaining limit`)
+        return
+      }
+      setDropErrorMessage(undefined)
+      useTemplateStore.getState().addAttachments(files)
+    },
+    [attachmentsSize]
+  )
+
+  return (
+    <>
+      {attachments.length > 0 && (
+        <Group wrap='wrap' gap='xs'>
+          {attachments.map((file, index) => (
+            <Pill
+              key={`${file.name}-${index}`}
+              withRemoveButton
+              onRemove={() => {
+                useTemplateStore.getState().removeAttachment(file)
+              }}
+            >
+              {`${file.name} - ${readableFileSize(file.size)}`}
+            </Pill>
+          ))}
+        </Group>
+      )}
+      <Dropzone
+        onDrop={onDropFiles}
+        maxSize={remainingSize}
+        disabled={remainingSize <= 0}
+        style={remainingSize > 0 ? {} : { cursor: 'not-allowed' }}
+      >
+        <Stack align='center' mih={100} justify='center'>
+          {dropErrorMessage && (
+            <Text size='sm' inline c='danger'>
+              {dropErrorMessage}
+            </Text>
+          )}
+          <Text size='xl' inline c='dimmed'>
+            {remainingSize > 0
+              ? `Drop attachments (Remaining: ${readableFileSize(remainingSize)})`
+              : 'Maximum attachments size reached'}
+          </Text>
+        </Stack>
+      </Dropzone>
+    </>
   )
 }
 

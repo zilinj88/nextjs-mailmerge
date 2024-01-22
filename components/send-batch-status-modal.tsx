@@ -89,14 +89,23 @@ export const SendBatchStatusModal: React.FC = () => {
           </Text>
         </Group>
         <Progress value={progress} animated={status === 'sending'}></Progress>
-        <Button
-          disabled={status === 'sending'}
-          onClick={() => {
-            useSendBatchState.getState().clear()
-          }}
-        >
-          Dismiss
-        </Button>
+        {status === 'sending' ? (
+          <Button
+            onClick={() => {
+              useSendBatchState.getState().cancel()
+            }}
+          >
+            Cancel
+          </Button>
+        ) : (
+          <Button
+            onClick={() => {
+              useSendBatchState.getState().clear()
+            }}
+          >
+            Dismiss
+          </Button>
+        )}
       </Stack>
     </Modal>
   )
