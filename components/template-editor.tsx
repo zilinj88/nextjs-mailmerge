@@ -18,7 +18,6 @@ import React, { useMemo, useState } from 'react'
 import { useMutation } from 'react-query'
 import { UsersTable } from '~/components/users-table'
 import { sendMeFn } from '~/lib/email'
-import { handleError } from '~/lib/handle-error'
 import {
   type UserRow,
   useAppDataStore,
@@ -98,14 +97,16 @@ const AttachmentsComp: React.FC = () => {
   const attachments = useTemplateStore((state) => state.attachments)
   const attachmentsSize = useAttachmentsSize()
   const remainingSize = maxAttachmentSize - attachmentsSize
+  const [dropErrorMessage, setDropErrorMessage] = useState<string>()
 
   const onDropFiles = React.useCallback(
     (files: File[]) => {
       const addedSize = files.reduce((size, file) => size + file.size, 0)
       if (addedSize + attachmentsSize > maxAttachmentSize) {
-        handleError(new Error('Maximum attachments size reached'))
+        setDropErrorMessage(`Exceeded maximum remaining limit`)
         return
       }
+      setDropErrorMessage(undefined)
       useTemplateStore.getState().addAttachments(files)
     },
     [attachmentsSize]
@@ -135,6 +136,11 @@ const AttachmentsComp: React.FC = () => {
         style={remainingSize > 0 ? {} : { cursor: 'not-allowed' }}
       >
         <Stack align='center' mih={100} justify='center'>
+          {dropErrorMessage && (
+            <Text size='sm' inline c='danger'>
+              {dropErrorMessage}
+            </Text>
+          )}
           <Text size='xl' inline c='dimmed'>
             {remainingSize > 0
               ? `Drop attachments (Remaining: ${readableFileSize(remainingSize)})`
