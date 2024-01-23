@@ -2,6 +2,7 @@
 
 import { Button, Group, Stack, Text, Tooltip } from '@mantine/core'
 import { Dropzone } from '@mantine/dropzone'
+import { IconInfoCircle } from '@tabler/icons-react'
 import { useRouter } from 'next/navigation'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { useAppDataStore } from '~/lib/hooks'
@@ -28,8 +29,8 @@ const useParseFile = () => {
         const data = await parseFile(file)
         useAppDataStore.getState().setData(data)
         router.push('?tab=template')
-      } catch (e) {
-        useAppDataStore.setState({ error: e })
+      } catch (error) {
+        useAppDataStore.setState({ error })
       } finally {
         setLoading(false)
       }
@@ -64,6 +65,7 @@ const InvalidFileErrorComp = () => {
   const content = (
     <Text size='md' c='danger' style={{ pointerEvents: 'all' }}>
       {mkErrorMessage(error)}
+      <IconInfoCircle size={18} />
     </Text>
   )
   if (tooltipContent) {

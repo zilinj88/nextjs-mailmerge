@@ -9,7 +9,9 @@ export class InvalidEmailsError extends Error {
     if (!invalidRows.length) {
       throw new Error('No errors')
     }
-    super('Invalid emails provided')
+    super(
+      'Invalid email provided.  Please make sure that the email address is the first column of your CSV.'
+    )
   }
 }
 
