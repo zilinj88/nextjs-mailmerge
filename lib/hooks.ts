@@ -33,6 +33,7 @@ export interface UsersData {
 
 export interface UseAppDataStore {
   data?: UsersData
+  error?: unknown
   selectedIndex: number | undefined
   setData: (data: UsersData | undefined) => void
 }
@@ -40,9 +41,10 @@ export interface UseAppDataStore {
 export const useAppDataStore = create<UseAppDataStore>((set) => ({
   data: undefined,
   selectedIndex: undefined,
+  error: undefined,
   setData: (data) => {
     // clear selection
-    set({ data, selectedIndex: data && data.rows.length > 0 ? 0 : undefined })
+    set({ data, selectedIndex: data && data.rows.length > 0 ? 0 : undefined, error: undefined })
   },
 }))
 

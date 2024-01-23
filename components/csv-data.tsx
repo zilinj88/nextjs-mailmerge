@@ -1,12 +1,11 @@
 'use client'
 
-import { Button, Group, Stack, Text } from '@mantine/core'
+import { Button, Group, Stack, Text, Tooltip } from '@mantine/core'
 import { Dropzone } from '@mantine/dropzone'
 import { useRouter } from 'next/navigation'
-import { useCallback, useRef, useState } from 'react'
-import { handleError } from '~/lib/handle-error'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { useAppDataStore } from '~/lib/hooks'
-import { parseFile } from '~/lib/parse'
+import { InvalidEmailsError, parseFile } from '~/lib/parse'
 import { atOrThrow } from '~/lib/util'
 
 const mkSampleFilePath = () => {
@@ -24,12 +23,13 @@ const useParseFile = () => {
   const parseAsync = useCallback(
     async (file: File | string) => {
       setLoading(true)
+      useAppDataStore.setState({ error: undefined })
       try {
         const data = await parseFile(file)
         useAppDataStore.getState().setData(data)
         router.push('?tab=template')
       } catch (e) {
-        handleError(e)
+        useAppDataStore.setState({ error: e })
       } finally {
         setLoading(false)
       }
@@ -37,6 +37,39 @@ const useParseFile = () => {
     [router]
   )
   return { isLoading, parseAsync }
+}
+
+const mkInvalidEmailsErrorLabel = (e: InvalidEmailsError) => {
+  return (
+    <>
+      {e.invalidRows.map(([row, data]) => (
+        <div key={row}>{`Invalid email "${data.email}" provided at row ${row + 1}`}</div>
+      ))}
+    </>
+  )
+}
+const mkErrorMessage = (error: unknown) =>
+  error instanceof Error ? error.message : 'Failed to parse CSV file'
+
+const InvalidFileErrorComp = () => {
+  const error = useAppDataStore((state) => state.error)
+  const tooltipContent = useMemo(() => {
+    return typeof error === 'object' && error instanceof InvalidEmailsError
+      ? mkInvalidEmailsErrorLabel(error)
+      : null
+  }, [error])
+  if (!error) {
+    return null
+  }
+  const content = (
+    <Text size='md' c='danger' style={{ pointerEvents: 'all' }}>
+      {mkErrorMessage(error)}
+    </Text>
+  )
+  if (tooltipContent) {
+    return <Tooltip label={tooltipContent}>{content}</Tooltip>
+  }
+  return content
 }
 
 export const CSVData: React.FC = () => {
@@ -57,9 +90,12 @@ export const CSVData: React.FC = () => {
       miw={500}
     >
       <Stack align='center' gap='xl' mih={220} style={{ pointerEvents: 'none' }} justify='center'>
-        <Text size='xl' inline c='dimmed'>
-          Drop CSV/TSV file here
-        </Text>
+        <Stack align='center' gap='sm'>
+          <InvalidFileErrorComp />
+          <Text size='xl' inline c='dimmed'>
+            Drop CSV/TSV file here
+          </Text>
+        </Stack>
         <Group style={{ pointerEvents: 'all' }}>
           <Button onClick={onClickUpload} loading={isLoading}>
             Upload
