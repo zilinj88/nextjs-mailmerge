@@ -64,8 +64,7 @@ const InvalidFileErrorComp = () => {
   }
   const content = (
     <Text size='md' c='danger' style={{ pointerEvents: 'all' }}>
-      {mkErrorMessage(error)}
-      <IconInfoCircle size={18} />
+      {mkErrorMessage(error)} <IconInfoCircle size={18} />
     </Text>
   )
   if (tooltipContent) {
