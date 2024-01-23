@@ -36,12 +36,9 @@ export const parseFile = (file: File | string): Promise<UsersData> =>
           reject(new Error('No user rows found'))
           return
         }
-        const invalidRows = rows.reduce<[number, UserRow][]>((current, row, index) => {
-          if (!row.email.match(emailRegEx)) {
-            return [...current, [index, row]]
-          }
-          return current
-        }, [])
+        const invalidRows = rows
+          .map<[number, UserRow]>((row, index) => [index, row])
+          .filter(([, row]) => !row.email.match(emailRegEx))
         if (invalidRows.length) {
           reject(new InvalidEmailsError(invalidRows))
         }
