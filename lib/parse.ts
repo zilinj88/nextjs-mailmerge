@@ -6,9 +6,6 @@ const emailRegEx = /^([a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$/
 
 export class InvalidEmailsError extends Error {
   constructor(public readonly invalidRows: [number, UserRow][]) {
-    if (!invalidRows.length) {
-      throw new Error('No errors')
-    }
     super(
       'Invalid email provided.  Please make sure that the email address is the first column of your CSV.'
     )
