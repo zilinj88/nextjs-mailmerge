@@ -14,19 +14,22 @@ import {
 } from '@mantine/core'
 import { Dropzone } from '@mantine/dropzone'
 import MDEditor from '@uiw/react-md-editor'
+import pluralize from 'pluralize'
 import React, { useMemo, useState } from 'react'
 import { useMutation } from 'react-query'
+import { PreviewWarningBadge } from '~/components/preview-warning-tooltip'
 import { UsersTable } from '~/components/users-table'
 import { sendMeFn } from '~/lib/email'
 import {
-  type UserRow,
   useAppDataStore,
   useAttachmentsSize,
   useSendBatchState,
   useTemplateStore,
   useTemplateStoreSafe,
 } from '~/lib/hooks'
+import promptConfirmAsync from '~/lib/prompt-confirm-async'
 import { sendBatch } from '~/lib/send-batch'
+import { useUpdatePreviewWarnings } from '~/lib/use-update-preview-warnings'
 import { readableFileSize, renderTemplate } from '~/lib/util'
 
 const EditorComp: React.FC = () => {
@@ -64,37 +67,36 @@ const EditorComp: React.FC = () => {
   )
 }
 
-const PreviewComp: React.FC<{
-  data?: UserRow
-}> = ({ data }) => {
-  const subjectTemplate = useTemplateStore((state) => state.subjectTemplate)
-  const bodyTemplate = useTemplateStore((state) => state.bodyTemplate)
+interface PreviewCompProps {
+  subject: string
+  body: string
+}
 
-  const renderedSubject = useMemo(
-    () => renderTemplate(subjectTemplate, data ?? {}),
-    [data, subjectTemplate]
-  )
-  const renderedBody = useMemo(() => renderTemplate(bodyTemplate, data ?? {}), [data, bodyTemplate])
-  return (
+const PreviewComp: React.FC<PreviewCompProps> = ({ subject, body }) => (
+  <Box>
+    <Group align='center' mb='xs'>
+      <Title order={3}>Preview</Title>
+      <PreviewWarningBadge />
+    </Group>
     <Stack gap='xl'>
       <Stack gap='xs'>
         <Title order={6}>Subject </Title>
-        <Text>{renderedSubject}</Text>
+        <Text>{subject}</Text>
       </Stack>
       <Stack data-color-mode='light' gap='xs'>
         <Title order={6}>Body</Title>
-        <MDEditor.Markdown source={renderedBody} />
+        <MDEditor.Markdown source={body} />
       </Stack>
     </Stack>
-  )
-}
+  </Box>
+)
 
 // 25MB
 // See https://support.google.com/mail/answer/6584#zippy=%2Cattachment-size-limit
 const maxAttachmentSize = 25 * 1024 * 1024
 
 const AttachmentsComp: React.FC = () => {
-  const attachments = useTemplateStore((state) => state.attachments)
+  const attachments = useAppDataStore((state) => state.attachments)
   const attachmentsSize = useAttachmentsSize()
   const remainingSize = maxAttachmentSize - attachmentsSize
   const [dropErrorMessage, setDropErrorMessage] = useState<string>()
@@ -107,7 +109,7 @@ const AttachmentsComp: React.FC = () => {
         return
       }
       setDropErrorMessage(undefined)
-      useTemplateStore.getState().addAttachments(files)
+      useAppDataStore.getState().addAttachments(files)
     },
     [attachmentsSize]
   )
@@ -121,7 +123,7 @@ const AttachmentsComp: React.FC = () => {
               key={`${file.name}-${index}`}
               withRemoveButton
               onRemove={() => {
-                useTemplateStore.getState().removeAttachment(file)
+                useAppDataStore.getState().removeAttachment(file)
               }}
             >
               {`${file.name} - ${readableFileSize(file.size)}`}
@@ -152,25 +154,76 @@ const AttachmentsComp: React.FC = () => {
   )
 }
 
+const useSubjectBody = () => {
+  const subjectTemplate = useTemplateStore((state) => state.subjectTemplate)
+  const bodyTemplate = useTemplateStore((state) => state.bodyTemplate)
+  const selectedUser = useAppDataStore((state) => state.selectedUser)
+  const subject = useMemo(
+    () => renderTemplate(subjectTemplate, selectedUser ?? {}),
+    [selectedUser, subjectTemplate]
+  )
+  const body = useMemo(
+    () => renderTemplate(bodyTemplate, selectedUser ?? {}),
+    [selectedUser, bodyTemplate]
+  )
+
+  return useMemo(
+    () => ({
+      subject,
+      body,
+    }),
+    [subject, body]
+  )
+}
+
 export const TemplateEditor: React.FC = () => {
   const rows = useAppDataStore((state) => state.data?.rows)
-  const selectedIndex = useAppDataStore((state) => state.selectedIndex)
-  const currentUser = typeof selectedIndex === 'number' ? rows?.at(selectedIndex) : undefined
   const sendBatchStatus = useSendBatchState((state) => state.status)
   const sendMeMutation = useMutation(sendMeFn)
   const sendBatchMutation = useMutation(sendBatch)
+  const selectedUser = useAppDataStore((state) => state.selectedUser)
+  const { subject, body } = useSubjectBody()
+  useUpdatePreviewWarnings({ subject, body })
+
+  const beforeSend = async () => {
+    const warnings = useAppDataStore.getState().warnings
+    if (!warnings.length) {
+      return true
+    }
+    const pluralizedWarning = pluralize('warning', warnings.length)
+    const confirm = await promptConfirmAsync({
+      title: 'Are you sure?',
+      subtitle: (
+        <>
+          {`There ${pluralize.isPlural(pluralizedWarning) ? 'are' : 'is'} ${
+            warnings.length
+          } ${pluralizedWarning}.
+          Are you sure you want to proceed?`}
+        </>
+      ),
+      confirmText: 'Yes',
+      confirmProps: { color: 'danger' },
+    })
+    return confirm
+  }
+  const onClickSendMe = async () => {
+    if (!selectedUser || !(await beforeSend())) {
+      return
+    }
+    sendMeMutation.mutateAsync(selectedUser)
+  }
+
+  const onSendBatch = async () => {
+    if (!(await beforeSend())) {
+      return
+    }
+    sendBatchMutation.mutateAsync()
+  }
 
   // Hack: Make sure the Preview & Markdown component read correct from TemplateStore
   const isLoaded = useTemplateStoreSafe((state) => state.isLoaded)
   if (!isLoaded) {
     return null
-  }
-
-  const onClickSendMe = () => {
-    if (!currentUser) {
-      return
-    }
-    sendMeMutation.mutateAsync(currentUser)
   }
 
   const isDataAvailable = rows && rows.length > 0
@@ -185,14 +238,7 @@ export const TemplateEditor: React.FC = () => {
           </Title>
           <EditorComp />
         </Box>
-        {isDataAvailable && (
-          <Box>
-            <Title order={3} mb='xs'>
-              Preview
-            </Title>
-            <PreviewComp data={currentUser} />
-          </Box>
-        )}
+        {isDataAvailable && <PreviewComp subject={subject} body={body} />}
       </SimpleGrid>
       {isDataAvailable && (
         <Stack>
@@ -200,17 +246,17 @@ export const TemplateEditor: React.FC = () => {
             <Title order={3}>Users ({rows.length})</Title>
             <Group>
               <Button
-                rightSection={sendMeMutation.isSuccess ? '✓' : undefined}
-                disabled={!currentUser}
+                rightSection={sendMeMutation.isSuccess ? '✓' : <PreviewWarningBadge />}
+                disabled={!selectedUser}
                 loading={isSendingMails}
                 onClick={onClickSendMe}
               >
                 Send me a sample
               </Button>
               <Button
-                rightSection={sendBatchStatus === 'finished' ? '✓' : undefined}
+                rightSection={sendBatchStatus === 'finished' ? '✓' : <PreviewWarningBadge />}
                 loading={isSendingMails}
-                onClick={() => sendBatchMutation.mutateAsync()}
+                onClick={onSendBatch}
               >
                 Send to everyone
               </Button>

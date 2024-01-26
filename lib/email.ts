@@ -1,7 +1,7 @@
 import { marked } from 'marked'
 import { type AttachmentOptions, createMimeMessage } from 'mimetext'
-import { type UserRow, useTemplateStore } from '~/lib/hooks'
-import { MarkdownTextRenderer } from '~/lib/markdown-text-renderer'
+import { type UserRow, useAppDataStore, useTemplateStore } from '~/lib/hooks'
+import { textRenderer } from '~/lib/markdown-text-renderer'
 import { mkBase64Encoded } from '~/lib/mk-base64-encoded'
 import { requestGoogleAccessToken } from '~/lib/token'
 import { renderTemplate } from '~/lib/util'
@@ -39,7 +39,6 @@ export interface SendEmailParams {
   attachments: AttachmentOptions[]
 }
 
-const textRenderer = new MarkdownTextRenderer()
 export const sendEmailAsync = async ({
   user,
   to,
@@ -69,7 +68,8 @@ export const getMyEmail = async (): Promise<string> => {
 export const sendMeFn = async (row: UserRow): Promise<void> => {
   await requestGoogleAccessToken()
   const to = await getMyEmail()
-  const { bodyTemplate, subjectTemplate, attachments } = useTemplateStore.getState()
+  const { bodyTemplate, subjectTemplate } = useTemplateStore.getState()
+  const { attachments } = useAppDataStore.getState()
   await sendEmailAsync({
     user: row,
     to,

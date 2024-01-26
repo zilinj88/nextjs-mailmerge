@@ -87,7 +87,8 @@ export const sendBatch = async (): Promise<void> => {
   }
 
   await requestGoogleAccessToken()
-  const { subjectTemplate, bodyTemplate, attachments } = useTemplateStore.getState()
+  const { subjectTemplate, bodyTemplate } = useTemplateStore.getState()
+  const { attachments } = useAppDataStore.getState()
   // Initialize sending
   const subscription = mkSendBatchObservable({
     users,
