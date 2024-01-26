@@ -4,6 +4,7 @@ import type { Subscription } from 'rxjs'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { SendBatchProgress } from '~/lib/send-batch'
+import type { PreviewWarning } from '~/lib/use-update-preview-warnings'
 import { useStore } from '~/lib/util'
 
 interface GoogleServiceToken extends google.accounts.oauth2.TokenResponse {
@@ -34,42 +35,48 @@ export interface UsersData {
 export interface UseAppDataStore {
   data?: UsersData
   error?: unknown
-  selectedIndex: number | undefined
+  selectedUser?: UserRow
+  attachments: File[]
+  warnings: PreviewWarning[]
   setData: (data: UsersData | undefined) => void
+  addAttachments: (files: File[]) => void
+  removeAttachment: (file: File) => void
 }
 
-export const useAppDataStore = create<UseAppDataStore>((set) => ({
+export const useAppDataStore = create<UseAppDataStore>((set, get) => ({
   data: undefined,
-  selectedIndex: undefined,
   error: undefined,
+  selectedUser: undefined,
+  attachments: [],
+  warnings: [],
   setData: (data) => {
     // clear selection
-    set({ data, selectedIndex: data && data.rows.length > 0 ? 0 : undefined, error: undefined })
+    set({
+      data,
+      selectedUser: data?.rows.at(0),
+      error: undefined,
+    })
+  },
+  addAttachments: (files: File[]) => {
+    set({ attachments: [...get().attachments, ...files] })
+  },
+  removeAttachment: (file: File) => {
+    set({ attachments: get().attachments.filter((f) => f !== file) })
   },
 }))
 
 export interface UseTemplateStore {
   subjectTemplate: string
   bodyTemplate: string
-  attachments: File[]
   // Hack: To check if this store is loaded from local storage
   isLoaded: boolean
-  addAttachments: (files: File[]) => void
-  removeAttachment: (file: File) => void
 }
 export const useTemplateStore = create<UseTemplateStore>()(
   persist(
-    (set, get) => ({
+    () => ({
       subjectTemplate: '',
       bodyTemplate: '',
-      attachments: [] as File[],
       isLoaded: true as boolean,
-      addAttachments: (files: File[]) => {
-        set({ attachments: [...get().attachments, ...files] })
-      },
-      removeAttachment: (file: File) => {
-        set({ attachments: get().attachments.filter((f) => f !== file) })
-      },
     }),
     {
       name: 'app-data-template-storage',
@@ -82,7 +89,7 @@ export const useTemplateStoreSafe = <T>(selector: (state: UseTemplateStore) => T
   useStore(useTemplateStore, selector)
 
 export const useAttachmentsSize = (): number => {
-  const attachments = useTemplateStore((state) => state.attachments)
+  const attachments = useAppDataStore((state) => state.attachments)
   return useMemo(
     () => attachments.reduce((totalSize, file) => totalSize + file.size, 0),
     [attachments]

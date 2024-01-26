@@ -33,3 +33,5 @@ export class MarkdownTextRenderer extends marked.Renderer {
   // etc.
   options = {}
 }
+
+export const textRenderer = new MarkdownTextRenderer()

@@ -1,6 +1,7 @@
 import { ColorSchemeScript, MantineProvider } from '@mantine/core'
 import '@mantine/core/styles.css'
 import '@mantine/dropzone/styles.css'
+import { ModalsProvider } from '@mantine/modals'
 import { Notifications } from '@mantine/notifications'
 import '@mantine/notifications/styles.css'
 import type { Metadata } from 'next'
@@ -22,8 +23,10 @@ const RootLayout = ({ children }: { children: React.ReactNode }): JSX.Element =>
       </head>
       <body>
         <MantineProvider theme={theme}>
-          <Notifications />
-          <QueryClientWrapper>{children}</QueryClientWrapper>
+          <ModalsProvider>
+            <Notifications />
+            <QueryClientWrapper>{children}</QueryClientWrapper>
+          </ModalsProvider>
         </MantineProvider>
       </body>
       <GoogleApi />
